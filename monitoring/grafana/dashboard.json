@@ -1,0 +1,188 @@
+{
+  "annotations": { "list": [{"builtIn": 1, "datasource": "-- Grafana --", "enable": true, "name": "Annotations & Alerts", "type": "dashboard"}]},
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 10,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}, "textMode": "auto"},
+      "pluginVersion": "10.0.0",
+      "targets": [{"expr": "rate(ecoguard_http_requests_total[5m])", "refId": "A"}],
+      "title": "HTTP Requests/s",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1000}, {"color": "red", "value": 3000}]},
+          "unit": "ms"
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "rate(ecoguard_http_request_duration_seconds_sum[5m]) / rate(ecoguard_http_request_duration_seconds_count[5m]) * 1000", "refId": "A"}],
+      "title": "Avg Latency (ms)",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 1},
+      "id": 3,
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "sum(rate(ecoguard_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(ecoguard_http_requests_total[5m])) * 100", "refId": "A"}],
+      "title": "Error Rate %",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.7}, {"color": "red", "value": 0.85}]}}
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1},
+      "id": 4,
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "ecoguard_drift_score", "refId": "A"}],
+      "title": "Drift Score",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
+      "id": 5,
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "ecoguard_model_loaded", "refId": "A"}],
+      "title": "Model Loaded",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
+      "id": 6,
+      "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "rate(ecoguard_inference_tokens_total[5m])", "refId": "A"}],
+      "title": "Tokens/s",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "palette-classic"}, "custom": {"fillOpacity": 10, "lineWidth": 2, "spanNulls": true}, "unit": "reqps"},
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
+      "id": 11,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum(rate(ecoguard_http_requests_total{status=~\"2..\"}[1m]))", "legendFormat": "2xx", "refId": "A"},
+        {"expr": "sum(rate(ecoguard_http_requests_total{status=~\"4..\"}[1m]))", "legendFormat": "4xx", "refId": "B"},
+        {"expr": "sum(rate(ecoguard_http_requests_total{status=~\"5..\"}[1m]))", "legendFormat": "5xx", "refId": "C"}
+      ],
+      "title": "Request Rate by Status",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "palette-classic"}, "unit": "s"},
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
+      "id": 12,
+      "options": {"legend": {"displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, rate(ecoguard_http_request_duration_seconds_bucket[5m]))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, rate(ecoguard_http_request_duration_seconds_bucket[5m]))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, rate(ecoguard_http_request_duration_seconds_bucket[5m]))", "legendFormat": "p99", "refId": "C"}
+      ],
+      "title": "Latency Percentiles",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 13},
+      "id": 13,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}},
+      "targets": [
+        {"expr": "rate(ecoguard_inference_duration_seconds_sum[5m]) / rate(ecoguard_inference_duration_seconds_count[5m])", "legendFormat": "inference", "refId": "A"}
+      ],
+      "title": "Inference Latency",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 13},
+      "id": 14,
+      "options": {},
+      "targets": [{"expr": "ecoguard_drift_score", "legendFormat": "drift", "refId": "A"}],
+      "title": "Drift Score Over Time",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 13},
+      "id": 15,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}},
+      "targets": [{"expr": "rate(ecoguard_inference_tokens_total[1m])", "legendFormat": "tokens/s", "refId": "A"}],
+      "title": "Token Throughput",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 21},
+      "id": 16,
+      "options": {"displayMode": "gradient", "minVizHeight": 10, "orientation": "horizontal", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [
+        {"expr": "rate(ecoguard_http_requests_total{status=~\"2..\"}[5m])", "legendFormat": "{{endpoint}} - {{method}}", "refId": "A"}
+      ],
+      "title": "Top Endpoints",
+      "type": "bargauge"
+    },
+    {
+      "fieldConfig": {"defaults": {}},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 21},
+      "id": 17,
+      "options": {},
+      "targets": [
+        {"expr": "rate(ecoguard_rate_limited_total[5m])", "legendFormat": "rate limited", "refId": "A"}
+      ],
+      "title": "Rate Limited Requests",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["eco-guard", "llm", "mlops"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Eco-Guard MLOps",
+  "uid": "eco-guard",
+  "version": 1
+}

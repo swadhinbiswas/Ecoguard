@@ -1,0 +1,14 @@
+apiVersion: v2
+name: eco-guard
+description: Production-grade LLM inference gateway and MLOps platform
+type: application
+version: 0.3.0
+appVersion: "0.3.0"
+keywords:
+  - llm
+  - inference
+  - mlops
+  - finetuning
+  - observability
+maintainers:
+  - name: Eco-Guard Team

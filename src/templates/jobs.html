@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Training Jobs — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+        <h2>Training Jobs</h2>
+        <p>Manage fine-tuning jobs — queue, start, monitor, cancel</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('jobForm').style.display='block'">+ Queue Job</button>
+</div>
+
+<div id="jobForm" style="display:none" class="card">
+    <h3>Queue Training Job</h3>
+    <form hx-post="/dashboard/jobs/create" hx-target="#jobList" hx-swap="outerHTML">
+        <div class="form-row">
+            <div class="form-group"><label>Job Name</label><input name="name" placeholder="drift-retrain-20240601" required></div>
+            <div class="form-group"><label>Base Model ID</label><input name="base_model_id" type="number" placeholder="1"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Dataset ID</label><input name="dataset_id" type="number" placeholder="1"></div>
+            <div class="form-group"><label>Output Model Name</label><input name="output_model_name" placeholder="eco-guard-v2"></div>
+        </div>
+        <div class="form-group">
+            <label>Config (JSON)</label>
+            <textarea name="config" rows="4">{
+    "method": "qlora",
+    "epochs": 3,
+    "learning_rate": 2e-4,
+    "lora_r": 8,
+    "lora_alpha": 16,
+    "batch_size": 4,
+    "max_seq_length": 2048
+}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Queue Job</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('jobForm').style.display='none'">Cancel</button>
+    </form>
+</div>
+
+<div class="card" id="jobList">
+    <h3>Job Queue</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Status</th><th>Trigger</th><th>Base Model</th><th>Dataset</th><th>Error</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for j in jobs %}
+            <tr>
+                <td><strong>{{ j.name }}</strong></td>
+                <td>
+                    {% if j.status == 'queued' %}<span class="badge blue">Queued</span>
+                    {% elif j.status == 'running' %}<span class="badge yellow pulse">Running</span>
+                    {% elif j.status == 'completed' %}<span class="badge green">Completed</span>
+                    {% elif j.status == 'failed' %}<span class="badge red">Failed</span>
+                    {% else %}<span class="badge">{{ j.status }}</span>{% endif %}
+                </td>
+                <td><span class="tag">{{ j.trigger_type }}</span></td>
+                <td>{% if j.base_model_id %}<span class="tag">MODEL-{{ j.base_model_id }}</span>{% else %}—{% endif %}</td>
+                <td>{% if j.dataset_id %}<span class="tag">DS-{{ j.dataset_id }}</span>{% else %}—{% endif %}</td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ j.error_message or '' }}">
+                    <span style="color:var(--red);font-size:12px">{{ j.error_message or '—' }}</span>
+                </td>
+                <td><span style="color:var(--text2);font-size:12px">{{ j.created_at[:19] if j.created_at else '—' }}</span></td>
+                <td>
+                    {% if j.status == 'queued' %}
+                    <button class="btn btn-sm btn-primary" hx-post="/dashboard/jobs/{{ j.id }}/start" hx-target="#jobList" hx-swap="outerHTML">Start</button>
+                    <button class="btn btn-sm btn-danger" hx-post="/dashboard/jobs/{{ j.id }}/cancel" hx-target="#jobList" hx-swap="outerHTML">Cancel</button>
+                    {% elif j.status == 'running' %}
+                    <button class="btn btn-sm btn-primary" hx-post="/dashboard/jobs/{{ j.id }}/complete?success=true" hx-target="#jobList" hx-swap="outerHTML">Complete</button>
+                    <button class="btn btn-sm btn-danger" hx-post="/dashboard/jobs/{{ j.id }}/cancel" hx-target="#jobList" hx-swap="outerHTML">Cancel</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not jobs %}
+            <tr><td colspan="8"><div class="empty-state">No training jobs yet</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

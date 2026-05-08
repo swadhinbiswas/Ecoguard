@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Experiments — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+        <h2>Experiment Tracking</h2>
+        <p>Log and compare training experiments, track metrics, find the best model</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('expForm').style.display='block'">+ New Experiment</button>
+</div>
+
+<div id="expForm" style="display:none" class="card">
+    <h3>Create Experiment</h3>
+    <form hx-post="/dashboard/experiments/create" hx-target="#expList" hx-swap="outerHTML">
+        <div class="form-row">
+            <div class="form-group"><label>Name</label><input name="name" placeholder="qlora-finetune-v2" required></div>
+            <div class="form-group"><label>Base Model</label><input name="base_model" placeholder="TinyLlama-1.1B" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Dataset Version</label><input name="dataset_version" placeholder="v20240601-120000"></div>
+            <div class="form-group"><label>Notes</label><input name="notes" placeholder="Experiment notes"></div>
+        </div>
+        <div class="form-group"><label>Hyperparameters (JSON)</label>
+            <textarea name="hyperparameters" rows="3">{"epochs":3,"lr":2e-4,"lora_r":8,"lora_alpha":16}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('expForm').style.display='none'">Cancel</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Compare Experiments</h3>
+    <form hx-get="/dashboard/experiments/compare" hx-target="#compareResult" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="margin-bottom:0"><label>Metric</label>
+            <select name="metric_name"><option value="eval_loss">eval_loss</option><option value="eval_accuracy">eval_accuracy</option></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0"><label>Experiment IDs</label>
+            <input name="ids" placeholder="1,2,3" style="width:200px">
+        </div>
+        <button type="submit" class="btn btn-primary">Compare</button>
+    </form>
+    <div id="compareResult" style="margin-top:12px"></div>
+</div>
+
+<div class="card" id="expList">
+    <h3>Experiments</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Base Model</th><th>Status</th><th>Best Metric</th><th>Steps</th><th>Started</th></tr></thead>
+        <tbody>
+            {% for e in experiments %}
+            <tr>
+                <td><a href="/dashboard/experiments/{{ e.id }}" style="color:var(--accent);text-decoration:none;font-weight:600">{{ e.name }}</a></td>
+                <td><span class="tag">{{ e.base_model }}</span></td>
+                <td>
+                    {% if e.status == 'completed' %}<span class="badge green">Completed</span>
+                    {% elif e.status == 'running' %}<span class="badge blue pulse">Running</span>
+                    {% elif e.status == 'failed' %}<span class="badge red">Failed</span>
+                    {% else %}<span class="badge yellow">{{ e.status }}</span>{% endif %}
+                </td>
+                <td>
+                    {% if e.best_metric %}
+                    <span class="mono">{{ e.best_metric }}: {{ "%.4f"|format(e.best_metric_value) }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ e.total_steps }}</td>
+                <td><span style="color:var(--text2);font-size:12px">{{ e.started_at[:19] if e.started_at else '—' }}</span></td>
+            </tr>
+            {% endfor %}
+            {% if not experiments %}
+            <tr><td colspan="6"><div class="empty-state">No experiments yet</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

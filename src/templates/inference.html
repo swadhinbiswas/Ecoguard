@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Inference — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Inference Analytics</h2>
+    <p>Real-time request monitoring, latency distribution, and token usage</p>
+</div>
+
+<div class="stats-grid" hx-get="/dashboard/inference/stats" hx-trigger="every 5s">
+    <div class="stat-card">
+        <div class="label">Requests (24h)</div>
+        <div class="value">{{ stats.total_requests }}</div>
+        <div class="sub">max latency: {{ stats.max_latency_ms }}ms</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Avg Latency</div>
+        <div class="value">{{ stats.avg_latency_ms }}ms</div>
+        <div class="sub">per request</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Tokens</div>
+        <div class="value">{{ stats.total_tokens }}</div>
+        <div class="sub">avg {{ stats.avg_tokens }}/req</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Recent Requests</h3>
+        <table>
+            <thead><tr><th>Request ID</th><th>Latency</th><th>Tokens</th><th>Drift</th><th>Time</th></tr></thead>
+            <tbody hx-get="/dashboard/inference/recent" hx-trigger="every 5s" hx-swap="innerHTML">
+                {% for log in recent_logs %}
+                <tr>
+                    <td><span class="mono" title="{{ log.request_id }}">{{ log.request_id[:12] }}...</span></td>
+                    <td>{{ "%.1f"|format(log.latency_ms) }}ms</td>
+                    <td>{{ log.token_count }}</td>
+                    <td>
+                        <span style="color:{{ '#f85149' if log.drift_score and log.drift_score > 0.7 else '#d29922' if log.drift_score and log.drift_score > 0.4 else '#3fb950' }}">
+                            {{ "%.4f"|format(log.drift_score or 0) }}
+                        </span>
+                    </td>
+                    <td><span style="color:var(--text2);font-size:12px">{{ log.timestamp[:19] if log.timestamp else '—' }}</span></td>
+                </tr>
+                {% endfor %}
+                {% if not recent_logs %}
+                <tr><td colspan="5"><div class="empty-state">No inference requests yet</div></td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h3>Latency Distribution</h3>
+        <div class="chart-container">
+            <canvas id="latencyDist"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+new Chart(document.getElementById('latencyDist'), {
+    type: 'bar',
+    data: {
+        labels: ['<100ms','100-250ms','250-500ms','500ms-1s','1s-2s','>2s'],
+        datasets: [{
+            label: 'Requests',
+            data: {{ latency_buckets | tojson }},
+            backgroundColor: [
+                'rgba(63,185,80,0.6)',
+                'rgba(77,166,255,0.6)',
+                'rgba(163,113,247,0.6)',
+                'rgba(210,153,34,0.6)',
+                'rgba(248,81,73,0.5)',
+                'rgba(248,81,73,0.7)',
+            ],
+            borderRadius: 6,
+            borderWidth: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#8997a9' } },
+            y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' } }
+        }
+    }
+});
+{% endblock %}

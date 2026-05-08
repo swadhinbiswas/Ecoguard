@@ -1,0 +1,85 @@
+replicaCount: 2
+
+image:
+  repository: eco-guard
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: false
+  className: nginx
+  host: eco-guard.local
+  tls: []
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPU: 70
+  targetMemory: 80
+
+config:
+  environment: production
+  logLevel: INFO
+  authEnabled: false
+  apiKeys: []
+  rateLimitEnabled: true
+  rateLimitRequests: 100
+  rateLimitWindowSeconds: 60
+  metricsEnabled: true
+  cacheEnabled: false
+  maxConcurrentInference: 4
+  modelWarmupEnabled: true
+  autoMigrate: true
+  driftAlertThreshold: 0.8
+  requestTimeoutSeconds: 120
+  circuitBreakerEnabled: true
+  shutdownDrainTimeout: 15
+
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: ecoguard
+    database: ecoguard
+  primary:
+    persistence:
+      size: 10Gi
+
+modelVolume:
+  enabled: true
+  storageClass: ""
+  size: 20Gi
+  accessMode: ReadOnlyMany
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+  prometheus:
+    scrape: true
+    port: 8000
+    path: /metrics
+
+tracing:
+  enabled: false
+  otlpEndpoint: ""
+
+alerts:
+  webhookUrl: ""
+
+serviceAccount:
+  create: true
+  name: ""

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Type checking
+.mypy_cache/
+
+# Models (large binary files)
+models/*.gguf
+models/*.bin
+
+# SQLite
+data/
+
+# Docker
+.env.docker
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Poetry
+poetry.lock

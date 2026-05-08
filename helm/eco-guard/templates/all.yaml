@@ -1,0 +1,235 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "eco-guard.fullname" . }}
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-config
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+data:
+  ENVIRONMENT: {{ .Values.config.environment | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  AUTH_ENABLED: {{ .Values.config.authEnabled | quote }}
+  RATE_LIMIT_ENABLED: {{ .Values.config.rateLimitEnabled | quote }}
+  RATE_LIMIT_REQUESTS: {{ .Values.config.rateLimitRequests | quote }}
+  RATE_LIMIT_WINDOW_SECONDS: {{ .Values.config.rateLimitWindowSeconds | quote }}
+  METRICS_ENABLED: {{ .Values.config.metricsEnabled | quote }}
+  CACHE_ENABLED: {{ .Values.config.cacheEnabled | quote }}
+  MAX_CONCURRENT_INFERENCE: {{ .Values.config.maxConcurrentInference | quote }}
+  MODEL_WARMUP_ENABLED: {{ .Values.config.modelWarmupEnabled | quote }}
+  AUTO_MIGRATE: {{ .Values.config.autoMigrate | quote }}
+  DRIFT_ALERT_THRESHOLD: {{ .Values.config.driftAlertThreshold | quote }}
+  REQUEST_TIMEOUT_SECONDS: {{ .Values.config.requestTimeoutSeconds | quote }}
+  CIRCUIT_BREAKER_ENABLED: {{ .Values.config.circuitBreakerEnabled | quote }}
+  SHUTDOWN_DRAIN_TIMEOUT: {{ .Values.config.shutdownDrainTimeout | quote }}
+  MODEL_PATH: /app/models/model.gguf
+  {{- if .Values.tracing.enabled }}
+  OTLP_ENDPOINT: {{ .Values.tracing.otlpEndpoint | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-secrets
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  DATABASE_URL: postgresql+asyncpg://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+  {{- if .Values.alerts.webhookUrl }}
+  ALERTING_WEBHOOK_URL: {{ .Values.alerts.webhookUrl | quote }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eco-guard.fullname" . }}
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels: {{- include "eco-guard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "eco-guard.selectorLabels" . | nindent 8 }}
+      {{- if .Values.monitoring.prometheus.scrape }}
+      annotations:
+        prometheus.io/scrape: {{ .Values.monitoring.prometheus.scrape | quote }}
+        prometheus.io/port: {{ .Values.monitoring.prometheus.port | quote }}
+        prometheus.io/path: {{ .Values.monitoring.prometheus.path | quote }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "eco-guard.fullname" . }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "eco-guard.fullname" . }}-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: DATABASE_URL
+            {{- if .Values.alerts.webhookUrl }}
+            - name: ALERTING_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: ALERTING_WEBHOOK_URL
+            {{- end }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.modelVolume.enabled }}
+          volumeMounts:
+            - name: models
+              mountPath: /app/models
+              readOnly: true
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      {{- if .Values.modelVolume.enabled }}
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: {{ include "eco-guard.fullname" . }}-models
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eco-guard.fullname" . }}
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector: {{- include "eco-guard.selectorLabels" . | nindent 4 }}
+{{- if .Values.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-hpa
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "eco-guard.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPU }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemory }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+{{- end }}
+{{- if .Values.modelVolume.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-models
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.modelVolume.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.modelVolume.size }}
+  {{- if .Values.modelVolume.storageClass }}
+  storageClassName: {{ .Values.modelVolume.storageClass }}
+  {{- end }}
+{{- end }}
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-ingress
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "eco-guard.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+  {{- if .Values.ingress.tls }}
+  tls: {{- toYaml .Values.ingress.tls | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "eco-guard.fullname" . }}
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels: {{- include "eco-guard.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+{{- end }}

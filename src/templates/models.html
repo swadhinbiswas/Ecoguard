@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Model Registry — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+        <h2>Model Registry</h2>
+        <p>Manage model versions, promote to staging/production, deploy and rollback</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('registerForm').style.display='block'">+ Register Model</button>
+</div>
+
+<div id="registerForm" style="display:none" class="card">
+    <h3>Register New Model</h3>
+    <form hx-post="/dashboard/models/register" hx-target="#modelList" hx-swap="outerHTML">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Model Name</label>
+                <input name="name" placeholder="my-finetuned-model" required>
+            </div>
+            <div class="form-group">
+                <label>Version</label>
+                <input name="version" placeholder="auto-generated if empty">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Artifact Path</label>
+                <input name="artifact_path" placeholder="./models/model.gguf" required>
+            </div>
+            <div class="form-group">
+                <label>Base Model</label>
+                <input name="base_model" placeholder="TinyLlama-1.1B">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Framework</label>
+                <select name="framework">
+                    <option value="llama-cpp">llama-cpp</option>
+                    <option value="pytorch">PyTorch</option>
+                    <option value="onnx">ONNX</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input name="description" placeholder="What makes this version different">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('registerForm').style.display='none'">Cancel</button>
+    </form>
+</div>
+
+<div id="modelList">
+    <table>
+        <thead>
+            <tr><th>Name</th><th>Version</th><th>Status</th><th>Base Model</th><th>Checksum</th><th>Deployed</th><th style="width:280px">Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for m in models %}
+            <tr>
+                <td><strong>{{ m.name }}</strong></td>
+                <td><span class="mono">{{ m.version }}</span></td>
+                <td>
+                    {% if m.status == 'production' %}<span class="badge green">Production</span>
+                    {% elif m.status == 'staging' %}<span class="badge yellow">Staging</span>
+                    {% elif m.status == 'archived' %}<span class="badge red">Archived</span>
+                    {% else %}<span class="badge blue">Registered</span>{% endif %}
+                </td>
+                <td><span class="tag">{{ m.base_model or '—' }}</span></td>
+                <td><span class="mono" title="{{ m.artifact_checksum }}">{{ (m.artifact_checksum or '—')[:12] }}...</span></td>
+                <td>{{ m.deployed_at or '—' }}</td>
+                <td>
+                    {% if m.status != 'production' and m.status != 'archived' %}
+                    <button class="btn btn-sm btn-primary" hx-post="/dashboard/models/{{ m.id }}/deploy" hx-target="#modelList" hx-swap="outerHTML">Deploy</button>
+                    {% endif %}
+                    {% if m.status == 'production' %}
+                    <span style="color:var(--green);font-size:12px">Active</span>
+                    {% endif %}
+                    {% if m.status == 'production' %}
+                    <button class="btn btn-sm btn-danger" hx-post="/dashboard/models/{{ m.id }}/rollback" hx-target="#modelList" hx-swap="outerHTML">Rollback</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not models %}
+            <tr><td colspan="7"><div class="empty-state"><div class="icon">⬡</div>No models registered yet</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

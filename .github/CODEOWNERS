@@ -1,0 +1,6 @@
+# Code Owners — auto-assign PR reviewers
+# Last match wins for overlapping patterns
+
+*       @swadhinbiswas
+src/    @swadhinbiswas
+tests/  @swadhinbiswas

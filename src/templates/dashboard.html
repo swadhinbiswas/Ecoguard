@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Eco-Guard — Overview{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Platform Overview</h2>
+    <p>Real-time monitoring of your LLM inference platform</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Total Requests</div>
+        <div class="value">{{ stats.total_requests }}</div>
+        <div class="sub">last {{ stats.period_hours }}h</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Avg Latency</div>
+        <div class="value">{{ stats.avg_latency_ms }}ms</div>
+        <div class="sub">p50 latency</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Tokens Generated</div>
+        <div class="value">{{ stats.total_tokens }}</div>
+        <div class="sub">avg {{ stats.avg_tokens }}/req</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Drift Score</div>
+        <div class="value" style="color:{{ '#f85149' if stats.avg_drift > 0.7 else '#d29922' if stats.avg_drift > 0.4 else '#3fb950' }}">
+            {{ "%.4f"|format(stats.avg_drift) }}
+        </div>
+        <div class="sub">{{ '⚠ High' if stats.avg_drift > 0.7 else '⚡ Moderate' if stats.avg_drift > 0.4 else '✓ Normal' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Models</div>
+        <div class="value">{{ stats.models_registered }}</div>
+        <div class="sub">{{ stats.models_production }} in production</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Training Jobs</div>
+        <div class="value">{{ stats.jobs_total }}</div>
+        <div class="sub">{{ stats.jobs_active }} active</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>⚡ Recent Inference Activity</h3>
+        <div class="chart-container">
+            <canvas id="latencyChart"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <h3>📈 Drift Trend</h3>
+        <div class="chart-container">
+            <canvas id="driftChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>System Status</h3>
+    <div class="stats-grid">
+        <div class="stat-card" style="background:var(--surface2)">
+            <div class="label">Database</div>
+            <div class="value" style="font-size:20px;color:{{ '#3fb950' if stats.db_healthy else '#f85149' }}">
+                {{ '✓ Connected' if stats.db_healthy else '✗ Down' }}
+            </div>
+        </div>
+        <div class="stat-card" style="background:var(--surface2)">
+            <div class="label">Model</div>
+            <div class="value" style="font-size:20px;color:{{ '#3fb950' if model_loaded else '#f85149' }}">
+                {{ '✓ Loaded' if model_loaded else '✗ Offline' }}
+            </div>
+        </div>
+        <div class="stat-card" style="background:var(--surface2)">
+            <div class="label">Cache</div>
+            <div class="value" style="font-size:20px">{{ stats.cache_size }} entries</div>
+        </div>
+        <div class="stat-card" style="background:var(--surface2)">
+            <div class="label">Concurrency</div>
+            <div class="value" style="font-size:20px">0 / {{ stats.max_concurrent }}</div>
+        </div>
+    </div>
+</div>
+
+{% if alerts %}
+<div class="card" style="border-color: rgba(248,81,73,.3)">
+    <h3>⚠ Recent Alerts</h3>
+    {% for alert in alerts %}
+    <div class="alert alert-{{ alert.severity }}">
+        <strong>{{ alert.severity.upper() }}</strong> — {{ alert.message }}
+        <span style="float:right;color:var(--text2)">{{ alert.time }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+const r1 = {{ recent_requests | tojson }};
+const r2 = {{ recent_drifts | tojson }};
+
+new Chart(document.getElementById('latencyChart'), {
+    type: 'line',
+    data: {
+        labels: r1.map((_,i) => 'req '+(i+1)),
+        datasets: [{
+            label: 'Latency (ms)',
+            data: r1,
+            borderColor: '#4da6ff',
+            backgroundColor: 'rgba(77,166,255,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { display: false },
+            y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('driftChart'), {
+    type: 'line',
+    data: {
+        labels: r2.map((_,i) => 't'+i),
+        datasets: [{
+            label: 'Drift Score',
+            data: r2,
+            borderColor: '#a371f7',
+            backgroundColor: 'rgba(163,113,247,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+        }, {
+            label: 'Threshold',
+            data: Array(r2.length).fill({{ threshold | tojson }}),
+            borderColor: 'rgba(248,81,73,0.5)',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { display: false },
+            y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' }, min: 0, max: 1 }
+        }
+    }
+});
+{% endblock %}

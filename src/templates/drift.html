@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Drift Monitor — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Drift Monitor</h2>
+    <p>Statistical drift tracking, retraining triggers, and anomaly detection</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Current Drift Score</div>
+        <div class="value" style="color:{{ '#f85149' if stats.avg_drift > threshold else '#3fb950' }}">
+            {{ "%.4f"|format(stats.avg_drift) }}
+        </div>
+        <div class="sub">threshold: {{ "%.2f"|format(threshold) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Samples in Window</div>
+        <div class="value">{{ stats.drift_samples }}</div>
+        <div class="sub">avg latency: {{ stats.avg_latency_ms }}ms</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Retraining Triggers</div>
+        <div class="value">{{ stats.triggers_total }}</div>
+        <div class="sub">{{ stats.triggers_unacknowledged }} unacknowledged</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Drift Over Time</h3>
+    <div class="chart-container"><canvas id="driftTimeline" style="max-height:300px"></canvas></div>
+</div>
+
+<div class="card">
+    <h3>Retraining Triggers</h3>
+    <table>
+        <thead><tr><th>Time</th><th>Drift Score</th><th>Threshold</th><th>Dataset</th><th>Job</th><th>Auto</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            {% for t in triggers %}
+            <tr>
+                <td><span style="color:var(--text2);font-size:12px">{{ t.triggered_at[:19] if t.triggered_at else '—' }}</span></td>
+                <td><span class="mono" style="color:var(--red)">{{ "%.4f"|format(t.drift_score) }}</span></td>
+                <td><span class="mono">{{ "%.2f"|format(t.threshold) }}</span></td>
+                <td>{% if t.dataset_id %}<span class="tag">DS-{{ t.dataset_id }}</span>{% else %}—{% endif %}</td>
+                <td>{% if t.training_job_id %}<span class="tag">JOB-{{ t.training_job_id }}</span>{% else %}—{% endif %}</td>
+                <td>{% if t.auto_triggered %}<span class="badge purple">Auto</span>{% else %}<span class="badge blue">Manual</span>{% endif %}</td>
+                <td>
+                    {% if t.acknowledged %}
+                    <span class="badge green">Acknowledged</span>
+                    {% else %}
+                    <span class="badge yellow">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not t.acknowledged %}
+                    <button class="btn btn-sm btn-secondary" hx-post="/dashboard/drift/triggers/{{ t.id }}/acknowledge" hx-target="closest tr" hx-swap="outerHTML">Acknowledge</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not triggers %}
+            <tr><td colspan="8"><div class="empty-state">No drift triggers yet — system is stable</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+new Chart(document.getElementById('driftTimeline'), {
+    type: 'line',
+    data: {
+        labels: {{ drift_timeline_labels | tojson }},
+        datasets: [{
+            label: 'Drift Score',
+            data: {{ drift_timeline_values | tojson }},
+            borderColor: '#a371f7',
+            backgroundColor: 'rgba(163,113,247,0.1)',
+            fill: true,
+            tension: 0.2,
+            pointRadius: 1,
+        }, {
+            label: 'Threshold',
+            data: Array({{ drift_timeline_values | length }}).fill({{ threshold | tojson }}),
+            borderColor: 'rgba(248,81,73,0.5)',
+            borderDash: [5,5],
+            pointRadius: 0,
+            fill: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#8997a9', maxTicksLimit: 10 } },
+            y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' } }
+        }
+    }
+});
+{% endblock %}

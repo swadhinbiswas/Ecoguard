@@ -1,0 +1,2 @@
+<template><main class="content"><div class="page-header"><h2>Inference Analytics</h2></div><div class="card"><div class="empty">Connect a model backend to see inference data</div></div></main></template>
+<style scoped>.content { flex: 1; padding: 28px 32px; }.page-header h2 { font-size: 22px; }.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }.empty { text-align: center; padding: 40px; color: var(--text2); }</style>

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ experiment.name }} — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>{{ experiment.name }}</h2>
+    <p>Base: {{ experiment.base_model }} | Status:
+        {% if experiment.status == 'completed' %}<span class="badge green">Completed</span>
+        {% elif experiment.status == 'running' %}<span class="badge blue pulse">Running</span>
+        {% elif experiment.status == 'failed' %}<span class="badge red">Failed</span>
+        {% else %}<span class="badge">{{ experiment.status }}</span>{% endif %}
+    </p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Best Metric</div>
+        <div class="value" style="font-size:20px">
+            {{ experiment.best_metric or 'N/A' }}: {{ "%.4f"|format(experiment.best_metric_value) if experiment.best_metric_value else '—' }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Steps</div>
+        <div class="value" style="font-size:20px">{{ experiment.total_steps }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Started</div>
+        <div class="value" style="font-size:16px">{{ experiment.started_at[:19] if experiment.started_at else '—' }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Hyperparameters</h3>
+    <div class="mono" style="white-space:pre-wrap;padding:12px;background:var(--surface2);border-radius:8px;font-size:13px">
+        {{ experiment.hyperparameters | tojson(indent=2) if experiment.hyperparameters else '{}' }}
+    </div>
+</div>
+
+{% if experiment.notes %}
+<div class="card">
+    <h3>Notes</h3>
+    <p style="color:var(--text2)">{{ experiment.notes }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Metrics Over Time</h3>
+    <div class="chart-container">
+        <canvas id="metricsChart" style="max-height:320px"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Metric Log</h3>
+    <table>
+        <thead><tr><th>Step</th><th>Metric</th><th>Value</th><th>Timestamp</th></tr></thead>
+        <tbody>
+            {% for m in metrics %}
+            <tr>
+                <td>{{ m.step }}</td>
+                <td><span class="tag">{{ m.metric_name }}</span></td>
+                <td><span class="mono">{{ "%.6f"|format(m.metric_value) }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ m.timestamp.isoformat()[:19] if m.timestamp else '—' }}</span></td>
+            </tr>
+            {% endfor %}
+            {% if not metrics %}
+            <tr><td colspan="4"><div class="empty-state">No metrics logged yet</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<a href="/dashboard/experiments" class="btn btn-secondary" style="margin-top:16px">← Back to Experiments</a>
+{% endblock %}
+
+{% block scripts %}
+const metricData = {{ metrics | tojson }};
+
+const steps = [...new Set(metricData.map(m => m.step))];
+const metricNames = [...new Set(metricData.map(m => m.metric_name))];
+
+const colors = ['#4da6ff', '#3fb950', '#a371f7', '#d29922', '#f85149'];
+const datasets = metricNames.map((name, i) => ({
+    label: name,
+    data: steps.map(s => {
+        const found = metricData.find(m => m.step === s && m.metric_name === name);
+        return found ? found.metric_value : null;
+    }),
+    borderColor: colors[i % colors.length],
+    backgroundColor: 'transparent',
+    tension: 0.2,
+    pointRadius: 1,
+}));
+
+new Chart(document.getElementById('metricsChart'), {
+    type: 'line',
+    data: { labels: steps, datasets },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#cdd6e0' } } },
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' } },
+            y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#8997a9' } }
+        }
+    }
+});
+{% endblock %}

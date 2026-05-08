@@ -1,0 +1,65 @@
+groups:
+  - name: eco-guard
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(ecoguard_http_requests_total{status=~"5.."}[5m])) / sum(rate(ecoguard_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Eco-Guard high error rate"
+          description: "5xx error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(ecoguard_http_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Eco-Guard high p95 latency"
+          description: "p95 latency is {{ $value }}s over the last 5 minutes."
+
+      - alert: DriftThresholdExceeded
+        expr: ecoguard_drift_score > 0.8
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Eco-Guard drift score exceeds threshold"
+          description: "Drift score is {{ $value }} (threshold: 0.8). Retraining may be triggered."
+
+      - alert: ModelNotLoaded
+        expr: ecoguard_model_loaded == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Eco-Guard model is not loaded"
+          description: "The inference model is not loaded. All prediction requests will fail."
+
+      - alert: HighRateLimiting
+        expr: rate(ecoguard_rate_limited_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Eco-Guard high rate limiting"
+          description: "Rate-limited request rate is {{ $value }}/s. Consider increasing limits."
+
+      - alert: LowTokenThroughput
+        expr: rate(ecoguard_inference_tokens_total[5m]) < 1 and ecoguard_http_requests_total > 0
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Eco-Guard low token throughput"
+          description: "Token throughput is {{ $value }} tokens/s while requests are being served."
+
+      - alert: InstanceDown
+        expr: up{job="eco-guard"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Eco-Guard instance is down"
+          description: "Instance {{ $labels.instance }} has been down for more than 1 minute."

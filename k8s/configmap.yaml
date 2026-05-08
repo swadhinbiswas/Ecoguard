@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eco-guard-config
+  labels:
+    app: eco-guard
+data:
+  MODEL_PATH: "/app/models/tinyllama.gguf"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS: "100"
+  RATE_LIMIT_WINDOW_SECONDS: "60"
+  METRICS_ENABLED: "true"
+  CACHE_ENABLED: "false"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eco-guard-secrets
+  labels:
+    app: eco-guard
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql+asyncpg://postgres:password@eco-guard-db-service:5432/ecoguard"

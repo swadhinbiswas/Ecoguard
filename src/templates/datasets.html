@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Datasets — Eco-Guard{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+        <h2>Datasets</h2>
+        <p>Create fine-tuning datasets from inference logs, manage and export</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('datasetForm').style.display='block'">+ Create Dataset</button>
+</div>
+
+<div id="datasetForm" style="display:none" class="card">
+    <h3>Create Dataset From Inference Logs</h3>
+    <form hx-post="/dashboard/datasets/create" hx-target="#datasetList" hx-swap="outerHTML">
+        <div class="form-row">
+            <div class="form-group"><label>Dataset Name</label><input name="name" placeholder="weekly-logs-v1" required></div>
+            <div class="form-group"><label>Hours Back</label><input name="hours" type="number" value="168" min="1" max="2160"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Min Tokens</label><input name="min_tokens" type="number" value="1" min="0"></div>
+            <div class="form-group"><label>Max Drift</label><input name="max_drift" type="number" value="1.0" step="0.1" min="0" max="1"></div>
+        </div>
+        <div class="form-group"><label>Record Limit</label><input name="limit" type="number" value="10000" min="1" max="100000"></div>
+        <button type="submit" class="btn btn-primary">Create Dataset</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('datasetForm').style.display='none'">Cancel</button>
+    </form>
+</div>
+
+<div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card">
+        <div class="label">Total Datasets</div>
+        <div class="value" style="font-size:20px">{{ ds_stats.total_datasets }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Records</div>
+        <div class="value" style="font-size:20px">{{ ds_stats.total_records }}</div>
+    </div>
+</div>
+
+<div class="card" id="datasetList">
+    <h3>Datasets</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Version</th><th>Format</th><th>Records</th><th>Quality</th><th>Source</th><th>Created</th><th>Path</th></tr></thead>
+        <tbody>
+            {% for d in datasets %}
+            <tr>
+                <td><strong>{{ d.name }}</strong></td>
+                <td><span class="mono">{{ d.version }}</span></td>
+                <td><span class="tag">{{ d.format }}</span></td>
+                <td>{{ d.record_count }}</td>
+                <td>
+                    <span style="color:{{ '#3fb950' if d.quality_score and d.quality_score > 0.7 else '#d29922' if d.quality_score and d.quality_score > 0.4 else '#f85149' }}">
+                        {{ "%.2f"|format(d.quality_score * 100) if d.quality_score else '—' }}%
+                    </span>
+                </td>
+                <td><span class="tag">{{ d.source }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ d.created_at[:19] if d.created_at else '—' }}</span></td>
+                <td><span class="mono" style="font-size:11px" title="{{ d.file_path }}">{{ d.file_path or '—' }}</span></td>
+            </tr>
+            {% endfor %}
+            {% if not datasets %}
+            <tr><td colspan="8"><div class="empty-state">No datasets created yet</div></td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
