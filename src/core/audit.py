@@ -1,20 +1,22 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
+
 from sqlalchemy import (
+    JSON,
     Column,
+    DateTime,
     Integer,
     String,
-    Float,
-    DateTime,
-    Text,
-    JSON,
+    desc,
+    select,
+)
+from sqlalchemy import (
     Enum as SAEnum,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
-from src.db.database import Base
+
 from src.core.logging import logger
+from src.db.database import Base
 
 
 class AuditAction(str, Enum):

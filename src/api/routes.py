@@ -1,32 +1,35 @@
-from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, Request, HTTPException, Query
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
-from src.models.schemas import (
-    PredictionRequest,
-    PredictionResponse,
-    HealthResponse,
-    ErrorResponse,
-    MetricsSummaryResponse,
-)
-from src.models.inference import InferenceLog
-from src.db.session import get_db
-from src.db.database import check_db_health
-from src.services.inference_service import InferenceService
-from src.services.streaming_service import StreamingInferenceService
-from src.services.cache_service import inference_cache
-from src.services.drift_detector import drift_detector
-from src.core.security import sanitize_prompt
+
+from src.core.auth import create_token, verify_request
 from src.core.backend import get_backend
 from src.core.config import settings
 from src.core.exceptions import (
-    ModelNotLoadedError,
-    ModelNotFoundError,
     InferenceError,
+    ModelNotFoundError,
+    ModelNotLoadedError,
 )
 from src.core.logging import logger
+from src.core.security import sanitize_prompt
+from src.db.database import check_db_health
+from src.db.session import get_db
+from src.models.inference import InferenceLog
+from src.models.schemas import (
+    ErrorResponse,
+    HealthResponse,
+    MetricsSummaryResponse,
+    PredictionRequest,
+    PredictionResponse,
+)
 from src.monitoring.metrics import record_inference
+from src.services.cache_service import inference_cache
+from src.services.drift_detector import drift_detector
+from src.services.inference_service import InferenceService
+from src.services.streaming_service import StreamingInferenceService
 
 router = APIRouter(prefix="/api/v1")
 
@@ -240,9 +243,6 @@ async def clear_cache():
 
 
 # ── Auth ────────────────────────────────────────────────────────
-
-from fastapi.responses import RedirectResponse
-from src.core.auth import create_token, decode_token, verify_request
 
 
 @router.post("/auth/login")

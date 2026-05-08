@@ -1,5 +1,6 @@
 import asyncio
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable
+
 from src.core.logging import logger
 
 

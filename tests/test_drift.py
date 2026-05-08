@@ -1,7 +1,8 @@
 """Test drift detector with various scenarios."""
 
 import pytest
-from src.services.drift_detector import drift_detector, StatisticalDriftDetector
+
+from src.services.drift_detector import StatisticalDriftDetector, drift_detector
 
 
 class TestStatisticalDriftDetector:

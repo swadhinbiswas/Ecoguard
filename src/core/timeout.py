@@ -1,7 +1,9 @@
 import asyncio
 from typing import Callable
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from src.core.config import settings
 from src.core.logging import logger
 

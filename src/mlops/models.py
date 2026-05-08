@@ -2,17 +2,20 @@ import enum
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Float,
-    DateTime,
-    Text,
     JSON,
     Boolean,
+    Column,
+    DateTime,
+    Float,
     ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy import (
     Enum as SAEnum,
 )
+
 from src.db.database import Base
 
 

@@ -1,19 +1,18 @@
 import hashlib
-import json
 import os
 from datetime import datetime, timezone
-from typing import Optional
+
+from sqlalchemy import desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, desc
-from src.mlops.models import (
-    ModelRegistry,
-    ModelStatus,
-    Deployment,
-    DeploymentStrategy,
-)
+
 from src.core.backend import get_backend
 from src.core.logging import logger
-from src.core.config import settings
+from src.mlops.models import (
+    Deployment,
+    DeploymentStrategy,
+    ModelRegistry,
+    ModelStatus,
+)
 
 
 class ModelRegistryService:

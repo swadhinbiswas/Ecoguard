@@ -1,18 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.session import get_db
-from src.mlops.models import (
-    ModelStatus,
-    JobStatus,
-    DeploymentStrategy,
-    ExperimentStatus,
-)
-from src.mlops.registry import ModelRegistryService
 from src.mlops.dataset import DatasetPipeline
 from src.mlops.experiments import ExperimentTracker
-from src.mlops.training import TrainingOrchestrator
+from src.mlops.models import (
+    DeploymentStrategy,
+    ExperimentStatus,
+    JobStatus,
+    ModelStatus,
+)
 from src.mlops.pipeline import DriftPipeline
-from src.core.logging import logger
+from src.mlops.registry import ModelRegistryService
+from src.mlops.training import TrainingOrchestrator
 
 mlops_router = APIRouter(prefix="/api/v1/mlops", tags=["MLOps"])
 
@@ -499,6 +499,7 @@ async def export_dataset(
     db: AsyncSession = Depends(get_db),
 ):
     from fastapi.responses import FileResponse
+
     from src.mlops.dataset import DatasetPipeline
 
     dataset = await DatasetPipeline.get_dataset(db, dataset_id)
@@ -591,7 +592,7 @@ async def get_audit_logs(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
-    from src.core.audit import AuditService, AuditAction
+    from src.core.audit import AuditAction, AuditService
 
     action_enum = AuditAction(action) if action else None
     logs = await AuditService.query(
@@ -605,15 +606,15 @@ async def get_audit_logs(
     return {
         "items": [
             {
-                "id": l.id,
-                "action": l.action.value if l.action else None,
-                "actor": l.actor,
-                "resource_type": l.resource_type,
-                "resource_id": l.resource_id,
-                "detail": l.detail,
-                "timestamp": l.timestamp.isoformat() if l.timestamp else None,
+                "id": log.id,
+                "action": log.action.value if log.action else None,
+                "actor": log.actor,
+                "resource_type": log.resource_type,
+                "resource_id": log.resource_id,
+                "detail": log.detail,
+                "timestamp": log.timestamp.isoformat() if log.timestamp else None,
             }
-            for l in logs
+            for log in logs
         ]
     }
 

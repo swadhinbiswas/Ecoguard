@@ -1,8 +1,6 @@
 from enum import Enum
-from typing import Optional
-from fastapi import Request, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.session import get_db
+
+from fastapi import HTTPException, Request
 
 
 class Role(str, Enum):

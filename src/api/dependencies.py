@@ -1,8 +1,5 @@
-from typing import AsyncGenerator
-from fastapi import Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.session import get_db
-from src.services.drift_detector import drift_detector
+from fastapi import Request
+
 from src.monitoring.metrics import record_inference, set_drift_score
 
 

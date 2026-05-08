@@ -1,8 +1,18 @@
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, JSON
+
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Integer,
+    String,
+    Text,
+    desc,
+    select,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func
+
 from src.db.database import Base
 
 

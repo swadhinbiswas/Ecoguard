@@ -1,12 +1,12 @@
-import os
-import hashlib
-import subprocess
 import asyncio
+import hashlib
+import os
 from datetime import datetime, timezone
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.mlops.models import ModelRegistry, ModelStatus
-from src.core.config import settings
+
 from src.core.logging import logger
+from src.mlops.models import ModelRegistry, ModelStatus
 
 
 class QuantizationPipeline:

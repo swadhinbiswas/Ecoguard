@@ -1,17 +1,16 @@
 import random
-import statistics
 from datetime import datetime, timezone
 from typing import Optional
+
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+
 from src.mlops.models import (
-    ModelRegistry,
-    ModelStatus,
     Deployment,
     DeploymentStrategy,
     InferenceLog,
+    ModelRegistry,
 )
-from src.core.logging import logger
 
 
 class ABTestService:

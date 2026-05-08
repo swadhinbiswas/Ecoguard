@@ -1,13 +1,14 @@
 from datetime import datetime, timezone
-from typing import Optional
+
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func
+
+from src.core.logging import logger
 from src.mlops.models import (
-    TrainingExperiment,
     ExperimentMetric,
     ExperimentStatus,
+    TrainingExperiment,
 )
-from src.core.logging import logger
 
 
 class ExperimentTracker:

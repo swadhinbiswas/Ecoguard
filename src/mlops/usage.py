@@ -1,11 +1,7 @@
-import hashlib
-import time
-import asyncio
-from typing import Optional
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+
 from src.core.config import settings
-from src.core.logging import logger
 
 
 class APIUsageTracker:
@@ -26,7 +22,8 @@ class APIUsageTracker:
         api_key_hash: str | None = None,
         hours: int = 24,
     ) -> dict:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
+
         from src.models.inference import InferenceLog
 
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
@@ -56,9 +53,11 @@ class APIUsageTracker:
         db: AsyncSession,
         hours: int = 6,
     ) -> list[dict]:
-        from datetime import datetime, timezone, timedelta
-        from src.models.inference import InferenceLog
+        from datetime import datetime, timedelta, timezone
+
         from sqlalchemy import text
+
+        from src.models.inference import InferenceLog
 
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         result = await db.execute(

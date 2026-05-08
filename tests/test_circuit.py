@@ -1,5 +1,7 @@
-import pytest
 import asyncio
+
+import pytest
+
 from src.core.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
 
 

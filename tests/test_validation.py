@@ -1,14 +1,15 @@
 import pytest
-from src.core.security import sanitize_prompt, MAX_INPUT_CHARS
+from fastapi import HTTPException
+
 from src.core.exceptions import (
     EcoGuardException,
-    ModelNotLoadedError,
-    ModelNotFoundError,
     InferenceError,
-    ValidationError,
+    ModelNotFoundError,
+    ModelNotLoadedError,
     RateLimitExceededError,
+    ValidationError,
 )
-from fastapi import HTTPException
+from src.core.security import MAX_INPUT_CHARS, sanitize_prompt
 
 
 class TestSanitizePrompt:

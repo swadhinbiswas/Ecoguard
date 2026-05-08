@@ -1,7 +1,8 @@
 """Test configuration and settings."""
 
 import pytest
-from src.core.config import settings, Settings
+
+from src.core.config import Settings, settings
 
 
 class TestSettings:

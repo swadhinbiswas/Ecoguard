@@ -1,12 +1,13 @@
 import json
 import os
 from datetime import datetime, timezone
+
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+
+from src.core.logging import logger
 from src.mlops.models import Dataset
 from src.models.inference import InferenceLog
-from src.core.config import settings
-from src.core.logging import logger
 
 
 class DatasetPipeline:

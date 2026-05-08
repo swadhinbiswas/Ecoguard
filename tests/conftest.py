@@ -1,5 +1,6 @@
-import pytest
 import os
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -20,8 +21,9 @@ def set_test_env():
 @pytest.fixture(scope="session")
 def _init_test_db():
     import asyncio
-    from src.db.database import init_db
+
     from src.core.backend import init_backend
+    from src.db.database import init_db
 
     async def _init():
         try:

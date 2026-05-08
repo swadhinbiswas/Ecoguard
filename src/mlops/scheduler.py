@@ -1,11 +1,10 @@
 import asyncio
 from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.mlops.pipeline import DriftPipeline
-from src.mlops.training import TrainingOrchestrator
+
 from src.core.config import settings
 from src.core.logging import logger
 from src.db.database import get_session_local
+from src.mlops.pipeline import DriftPipeline
 
 
 class Scheduler:
@@ -59,14 +58,16 @@ class Scheduler:
         while self._running:
             try:
                 async with get_session_local()() as db:
-                    from sqlalchemy import delete
-                    from src.mlops.models import RetrainingTrigger
                     from datetime import timedelta
+
+                    from sqlalchemy import delete
+
+                    from src.mlops.models import RetrainingTrigger
 
                     cutoff = datetime.now(timezone.utc) - timedelta(days=90)
                     await db.execute(
                         delete(RetrainingTrigger).where(
-                            RetrainingTrigger.acknowledged == True,
+                            RetrainingTrigger.acknowledged,
                             RetrainingTrigger.triggered_at < cutoff,
                         )
                     )

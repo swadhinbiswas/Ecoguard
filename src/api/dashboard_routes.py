@@ -2,38 +2,34 @@ from __future__ import annotations
 
 import json
 import statistics
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Request, Form, Query, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
 
-from src.db.session import get_db
-from src.db.database import check_db_health
-from src.core.config import settings
 from src.core.backend import get_backend
-from src.models.inference import InferenceLog
-from src.services.drift_detector import drift_detector
-from src.services.cache_service import inference_cache
-from src.mlops.models import (
-    ModelRegistry,
-    ModelStatus,
-    Dataset,
-    TrainingJob,
-    JobStatus,
-    TrainingExperiment,
-    ExperimentStatus,
-    RetrainingTrigger,
-    Deployment,
-)
-from src.mlops.registry import ModelRegistryService
+from src.core.config import settings
+from src.db.database import check_db_health
+from src.db.session import get_db
 from src.mlops.dataset import DatasetPipeline
 from src.mlops.experiments import ExperimentTracker
-from src.mlops.training import TrainingOrchestrator
+from src.mlops.models import (
+    Deployment,
+    JobStatus,
+    ModelRegistry,
+    ModelStatus,
+    RetrainingTrigger,
+    TrainingJob,
+)
 from src.mlops.pipeline import DriftPipeline
-from src.core.logging import logger
+from src.mlops.registry import ModelRegistryService
+from src.mlops.training import TrainingOrchestrator
+from src.models.inference import InferenceLog
+from src.services.cache_service import inference_cache
+from src.services.drift_detector import drift_detector
 
 templates = Jinja2Templates(directory="src/templates")
 
@@ -174,7 +170,7 @@ async def register_model_action(
             framework=framework,
             description=description,
         )
-    except Exception as e:
+    except Exception:
         pass
     return RedirectResponse(url="/dashboard/models", status_code=303)
 
@@ -249,12 +245,12 @@ async def inference_page(request: Request, db: AsyncSession = Depends(get_db)):
         if log.latency_ms:
             latencies.append(log.latency_ms)
     ctx["latency_buckets"] = [
-        sum(1 for l in latencies if l < 100),
-        sum(1 for l in latencies if 100 <= l < 250),
-        sum(1 for l in latencies if 250 <= l < 500),
-        sum(1 for l in latencies if 500 <= l < 1000),
-        sum(1 for l in latencies if 1000 <= l < 2000),
-        sum(1 for l in latencies if l >= 2000),
+        sum(1 for lat in latencies if lat < 100),
+        sum(1 for lat in latencies if 100 <= lat < 250),
+        sum(1 for lat in latencies if 250 <= lat < 500),
+        sum(1 for lat in latencies if 500 <= lat < 1000),
+        sum(1 for lat in latencies if 1000 <= lat < 2000),
+        sum(1 for lat in latencies if lat >= 2000),
     ]
 
     return templates.TemplateResponse(request, "inference.html", ctx)
@@ -309,7 +305,7 @@ async def drift_page(request: Request, db: AsyncSession = Depends(get_db)):
     total_triggers = await db.execute(select(func.count(RetrainingTrigger.id)))
     unack = await db.execute(
         select(func.count(RetrainingTrigger.id)).where(
-            RetrainingTrigger.acknowledged == False
+            RetrainingTrigger.acknowledged.is_(False)
         )
     )
 

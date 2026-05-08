@@ -1,7 +1,8 @@
-import time
 import asyncio
 import inspect
+import time
 from typing import Callable, TypeVar
+
 from src.core.logging import logger
 
 T = TypeVar("T")
@@ -56,7 +57,7 @@ class CircuitBreaker:
                 if inspect.iscoroutinefunction(func)
                 else func(*args, **kwargs)
             )
-        except Exception as e:
+        except Exception:
             async with self._lock:
                 self._failure_count += 1
                 self._last_failure_time = time.monotonic()

@@ -1,11 +1,12 @@
-from typing import Callable
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
-from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from src.core.config import settings
 import time
+from typing import Callable
 
+from fastapi import Request, Response
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram, generate_latest
+from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from src.core.config import settings
 
 http_requests_total = Counter(
     "ecoguard_http_requests_total",

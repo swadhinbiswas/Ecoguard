@@ -1,19 +1,20 @@
-import time
 import asyncio
+import time
 from datetime import datetime, timezone
-from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.backend import get_backend
-from src.core.logging import log_inference
-from src.core.config import settings
 from src.core.concurrency import inference_limiter
-from src.services.drift_detector import drift_detector
-from src.services.cache_service import inference_cache
-from src.services.alerter import get_alerter
+from src.core.config import settings
+from src.core.logging import log_inference
+from src.core.tracing import trace_inference
 from src.models.inference import InferenceLog
 from src.models.schemas import PredictionRequest, PredictionResponse
 from src.monitoring.metrics import record_inference, set_drift_score
-from src.core.tracing import trace_inference
+from src.services.alerter import get_alerter
+from src.services.cache_service import inference_cache
+from src.services.drift_detector import drift_detector
 
 
 class InferenceService:

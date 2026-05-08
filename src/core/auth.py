@@ -1,12 +1,13 @@
 import secrets
 import time
-import jwt
 from typing import Callable
+
+import jwt
 from fastapi import Request, Response
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from src.core.config import settings
-from src.core.logging import logger
 
 PUBLIC_PATHS = {
     "/",

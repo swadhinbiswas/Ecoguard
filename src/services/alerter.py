@@ -1,6 +1,7 @@
-import httpx
-import json
 from typing import Optional
+
+import httpx
+
 from src.core.config import settings
 from src.core.logging import logger
 

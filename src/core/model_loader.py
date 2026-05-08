@@ -1,9 +1,10 @@
 import os
 import threading
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
 from src.core.config import settings
-from src.core.logging import logger
 from src.core.exceptions import ModelNotFoundError, ModelNotLoadedError
+from src.core.logging import logger
 from src.monitoring.metrics import set_model_loaded
 
 if TYPE_CHECKING:

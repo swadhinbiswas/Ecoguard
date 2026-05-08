@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
-from typing import Optional
+
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, desc
-from src.mlops.models import TrainingJob, JobStatus
+
 from src.core.logging import logger
+from src.mlops.models import JobStatus, TrainingJob
 
 
 class TrainingOrchestrator:

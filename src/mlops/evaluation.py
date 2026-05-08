@@ -1,14 +1,11 @@
 import asyncio
-import json
 import time
-from datetime import datetime, timezone
-from typing import Optional
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from src.models.inference import InferenceLog
+
 from src.core.backend import get_backend
-from src.core.config import settings
-from src.core.logging import logger
+from src.models.inference import InferenceLog
 
 
 class ModelEvaluator:

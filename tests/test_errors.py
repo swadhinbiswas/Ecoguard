@@ -1,9 +1,10 @@
 import pytest
+
 from src.core.error_codes import (
-    ErrorCode,
-    error_response,
     ERROR_MESSAGES,
     EcoGuardError,
+    ErrorCode,
+    error_response,
 )
 
 
@@ -89,8 +90,9 @@ class TestSchemas:
         assert req.repeat_penalty == 1.2
 
     def test_prediction_request_invalid_top_p(self):
-        from src.models.schemas import PredictionRequest
         from pydantic import ValidationError
+
+        from src.models.schemas import PredictionRequest
 
         with pytest.raises(ValidationError):
             PredictionRequest(prompt="Test", top_p=1.5)
@@ -102,8 +104,9 @@ class TestSchemas:
         assert req.max_tokens == 2048
 
     def test_max_tokens_exceeds_bound(self):
-        from src.models.schemas import PredictionRequest
         from pydantic import ValidationError
+
+        from src.models.schemas import PredictionRequest
 
         with pytest.raises(ValidationError):
             PredictionRequest(prompt="Test", max_tokens=3000)

@@ -1,33 +1,33 @@
-import os
 import asyncio
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from src.api.routes import router
-from src.api.mlops_routes import mlops_router
-from src.api.dashboard_routes import dashboard
-from src.api.websocket import ws_router, metrics_broadcast_loop
-from src.core.config import settings
-from src.core.middleware import RequestLoggingMiddleware
-from src.core.auth import AuthMiddleware, get_api_key_store
-from src.core.backend import init_backend, shutdown_backend, get_backend
-from src.core.concurrency import inference_limiter
-from src.core.timeout import TimeoutMiddleware
-from src.core.error_codes import ErrorCode
-from src.core.tracing import setup_tracing
-from src.db.database import init_db, close_db, check_db_health
-from src.core.logging import logger
-from src.services.background import background_runner
-from src.services.alerter import get_alerter
-from src.mlops.scheduler import scheduler
-from src.monitoring.metrics import metrics_endpoint, PrometheusMetricsMiddleware
+from slowapi.util import get_remote_address
 
+from src.api.dashboard_routes import dashboard
+from src.api.mlops_routes import mlops_router
+from src.api.routes import router
+from src.api.websocket import metrics_broadcast_loop, ws_router
+from src.core.auth import AuthMiddleware, get_api_key_store
+from src.core.backend import get_backend, init_backend, shutdown_backend
+from src.core.concurrency import inference_limiter
+from src.core.config import settings
+from src.core.error_codes import ErrorCode
+from src.core.logging import logger
+from src.core.middleware import RequestLoggingMiddleware
+from src.core.timeout import TimeoutMiddleware
+from src.core.tracing import setup_tracing
+from src.db.database import check_db_health, close_db, init_db
+from src.mlops.scheduler import scheduler
+from src.monitoring.metrics import PrometheusMetricsMiddleware, metrics_endpoint
+from src.services.background import background_runner
 
 limiter = Limiter(key_func=get_remote_address)
 _shutting_down = False
@@ -43,6 +43,7 @@ async def lifespan(app: FastAPI):
     if settings.auto_migrate:
         try:
             from alembic.config import Config
+
             from alembic import command
 
             alembic_cfg = Config("alembic.ini")

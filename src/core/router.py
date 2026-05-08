@@ -1,6 +1,5 @@
 from src.core.backend import get_backend
 from src.core.config import settings
-from src.core.logging import logger
 
 
 class ModelRouter:

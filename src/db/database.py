@@ -1,7 +1,8 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
-from sqlalchemy import text
+
 from src.core.config import settings
 from src.core.logging import logger
 
@@ -123,7 +124,3 @@ async def check_db_health() -> bool:
         return False
 
 
-import src.models.inference  # noqa: E402
-import src.mlops.models  # noqa: E402
-import src.core.audit  # noqa: E402
-import src.mlops.prompts  # noqa: E402

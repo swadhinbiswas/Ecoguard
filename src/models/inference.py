@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text
 from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text
+
 from src.db.database import Base
+
 
 class InferenceLog(Base):
     __tablename__ = "inference_logs"

@@ -1,11 +1,11 @@
-import time
 import asyncio
 import json
+import time
 from typing import AsyncGenerator
+
 from src.core.backend import get_backend
-from src.core.security import sanitize_prompt
-from src.core.config import settings
 from src.core.logging import logger
+from src.core.security import sanitize_prompt
 from src.models.schemas import PredictionRequest
 
 

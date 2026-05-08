@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
-from src.mlops.models import RetrainingTrigger
-from src.mlops.dataset import DatasetPipeline
-from src.mlops.training import TrainingOrchestrator
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.config import settings
 from src.core.logging import logger
+from src.mlops.dataset import DatasetPipeline
+from src.mlops.models import RetrainingTrigger
+from src.mlops.training import TrainingOrchestrator
 
 
 class DriftPipeline:
@@ -23,7 +25,7 @@ class DriftPipeline:
         recent_result = await db.execute(
             select(RetrainingTrigger)
             .where(
-                RetrainingTrigger.auto_triggered == True,
+                RetrainingTrigger.auto_triggered,
             )
             .order_by(RetrainingTrigger.triggered_at.desc())
             .limit(1)

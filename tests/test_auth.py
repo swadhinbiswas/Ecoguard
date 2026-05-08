@@ -1,4 +1,5 @@
 import pytest
+
 from src.core.auth import APIKeyStore, AuthMiddleware
 
 

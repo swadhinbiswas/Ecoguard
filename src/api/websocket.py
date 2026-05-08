@@ -2,12 +2,13 @@ import asyncio
 import json
 import time
 from typing import Any
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from src.core.config import settings
+
 from src.core.backend import get_backend
+from src.core.concurrency import inference_limiter
 from src.core.logging import logger
 from src.services.drift_detector import drift_detector
-from src.core.concurrency import inference_limiter
 
 ws_router = APIRouter()
 
@@ -43,7 +44,7 @@ async def metrics_broadcast_loop() -> None:
                     "in_use": inference_limiter.in_use,
                 },
                 "latency": {
-                    "recent": [round(l, 2) for l in latencies],
+                    "recent": [round(lat, 2) for lat in latencies],
                 },
                 "drift": {
                     "samples": len(drift_detector._latency_history),

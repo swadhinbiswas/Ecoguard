@@ -1,5 +1,7 @@
-import numpy as np
 from typing import List
+
+import numpy as np
+
 
 class StatisticalDriftDetector:
     """
@@ -28,7 +30,7 @@ class StatisticalDriftDetector:
 
         # Calculate a simple Z-Score for latency as our synthetic drift score placeholder
         z_score = abs(latency - mean_latency) / std_latency
-        
+
         # Normalize arbitrarily to a 0.0 - 1.0 risk scale for the API
         drift_score = min(1.0, z_score / 10.0)
         return float(drift_score)
