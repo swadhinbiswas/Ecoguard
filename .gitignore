@@ -33,8 +33,9 @@ models/*.bin
 # SQLite
 data/
 
-# Docker
-.env.docker
+# Node
+frontend/node_modules/
+frontend/dist/
 
 # OS
 .DS_Store
