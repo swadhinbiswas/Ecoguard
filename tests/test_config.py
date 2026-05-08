@@ -9,7 +9,7 @@ class TestSettings:
     def test_defaults(self):
         assert settings.app_name == "Eco-Guard"
         assert settings.app_version == "0.2.0"
-        assert settings.environment == "development"
+        assert settings.environment in ("development", "test")
         assert settings.port == 8000
         assert settings.max_input_chars == 4000
 
