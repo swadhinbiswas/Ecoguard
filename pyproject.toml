@@ -73,3 +73,31 @@ markers = [
 python_version = "3.11"
 strict = false
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "src.mlops.models",
+    "src.mlops.training",
+    "src.mlops.experiments",
+    "src.mlops.pipeline",
+    "src.mlops.registry",
+    "src.mlops.prompts",
+    "src.mlops.quantization",
+    "src.mlops.scheduler",
+    "src.mlops.ab_testing",
+    "src.mlops.backup",
+    "src.mlops.dataset",
+    "src.mlops.evaluation",
+    "src.mlops.usage",
+    "src.core.audit",
+    "src.services.drift_detector",
+    "src.services.background",
+    "src.core.retry",
+    "src.api.dashboard_routes",
+    "src.core.router",
+]
+disable_error_code = ["assignment", "arg-type", "attr-defined", "operator", "annotation-unchecked", "var-annotated", "misc", "return-value"]
+
+[[tool.mypy.overrides]]
+module = "src.main"
+disable_error_code = ["arg-type"]

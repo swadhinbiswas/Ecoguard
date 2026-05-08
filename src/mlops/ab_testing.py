@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.mlops.models import (
     Deployment,
     DeploymentStrategy,
-    InferenceLog,
     ModelRegistry,
 )
+from src.models.inference import InferenceLog
 
 
 class ABTestService:

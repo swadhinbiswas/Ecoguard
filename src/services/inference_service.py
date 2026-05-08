@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.backend import get_backend
 from src.core.concurrency import inference_limiter
 from src.core.config import settings
-from src.core.logging import log_inference
+from src.core.logging import log_inference, logger
 from src.core.tracing import trace_inference
 from src.models.inference import InferenceLog
 from src.models.schemas import PredictionRequest, PredictionResponse
