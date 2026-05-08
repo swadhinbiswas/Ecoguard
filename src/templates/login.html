@@ -43,7 +43,14 @@
         e.preventDefault();
         const fd = new FormData(this);
         try {
-            const r = await fetch('/api/v1/auth/login?' + new URLSearchParams(fd), { method: 'POST' });
+            const r = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: fd.get('username'),
+                    password: fd.get('password')
+                })
+            });
             if (r.ok) {
                 const data = await r.json();
                 document.cookie = 'eco_guard_token=' + data.access_token + ';path=/;max-age=86400;SameSite=Lax';

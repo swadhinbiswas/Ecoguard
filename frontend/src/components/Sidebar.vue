@@ -4,9 +4,10 @@
       <div class="logo-icon">E</div>
       <div>
         <h1>Eco-Guard</h1>
-        <span>MLOps Platform</span>
+        <span>{{ demoMode ? 'Public demo' : 'MLOps Platform' }}</span>
       </div>
     </div>
+    <div v-if="demoMode" class="demo-pill">Read-only demo</div>
     <nav>
       <router-link to="/dashboard" class="nav-item">
         <span class="icon">▣</span> Overview
@@ -50,6 +51,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const modelLoaded = ref(false)
 const version = ref('')
+const demoMode = ref(false)
 
 const statusColor = computed(() => modelLoaded.value ? 'green' : 'red')
 const statusText = computed(() => modelLoaded.value ? 'Model Online' : 'Model Offline')
@@ -57,8 +59,10 @@ const statusText = computed(() => modelLoaded.value ? 'Model Online' : 'Model Of
 async function checkHealth() {
   try {
     const data = await api.get('/api/v1/health')
+    const system = await api.get('/api/v1/system/status')
     modelLoaded.value = data.checks?.model === 'loaded'
     version.value = data.version || ''
+    demoMode.value = Boolean(system.demo_mode)
   } catch {}
 }
 
@@ -80,6 +84,7 @@ onMounted(() => { checkHealth(); setInterval(checkHealth, 15000) })
 .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
 .logo h1 { font-size: 17px; color: var(--accent); font-weight: 700; }
 .logo span { font-size: 11px; color: var(--text2); display: block; }
+.demo-pill { margin: 0 20px 14px; border: 1px solid rgba(210,153,34,.35); background: rgba(210,153,34,.1); color: var(--yellow); border-radius: 999px; padding: 7px 10px; font-size: 11px; font-weight: 800; text-align: center; text-transform: uppercase; letter-spacing: .6px; }
 nav { flex: 1; padding: 0 12px; }
 .nav-item {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;

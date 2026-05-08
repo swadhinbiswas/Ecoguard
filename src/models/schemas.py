@@ -18,6 +18,22 @@ class PredictionRequest(BaseModel):
     )
 
 
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=128)
+    password: str = Field(..., min_length=1, max_length=256)
+
+
+class SystemStatusResponse(BaseModel):
+    app_name: str
+    version: str
+    environment: str
+    demo_mode: bool
+    demo_read_only: bool
+    auth_enabled: bool
+    first_run: bool
+    setup_required: list[str]
+
+
 class PredictionResponse(BaseModel):
     request_id: str
     output: str

@@ -21,9 +21,11 @@ from src.models.inference import InferenceLog
 from src.models.schemas import (
     ErrorResponse,
     HealthResponse,
+    LoginRequest,
     MetricsSummaryResponse,
     PredictionRequest,
     PredictionResponse,
+    SystemStatusResponse,
 )
 from src.monitoring.metrics import record_inference
 from src.services.cache_service import inference_cache
@@ -32,6 +34,43 @@ from src.services.inference_service import InferenceService
 from src.services.streaming_service import StreamingInferenceService
 
 router = APIRouter(prefix="/api/v1")
+
+
+def _setup_required() -> list[str]:
+    required: list[str] = []
+    if settings.auth_enabled:
+        if settings.admin_username == "admin" and settings.admin_password == "admin":
+            required.append("Change the default admin credentials")
+        if len(settings.jwt_secret) < 32:
+            required.append("Set a JWT_SECRET with at least 32 characters")
+        if "eco-guard-dev-key" in settings.api_keys:
+            required.append("Remove the default development API key")
+    if settings.environment == "production" and settings.cors_origins == ["*"]:
+        required.append("Restrict CORS_ORIGINS for production")
+    if settings.environment == "production" and not settings.database_url.startswith(
+        "postgresql+asyncpg://"
+    ):
+        required.append("Configure a PostgreSQL DATABASE_URL")
+    return required
+
+
+@router.get(
+    "/system/status",
+    response_model=SystemStatusResponse,
+    tags=["System"],
+)
+async def system_status():
+    setup_required = _setup_required()
+    return SystemStatusResponse(
+        app_name=settings.app_name,
+        version=settings.app_version,
+        environment=settings.environment,
+        demo_mode=settings.demo_mode,
+        demo_read_only=settings.demo_read_only,
+        auth_enabled=settings.auth_enabled,
+        first_run=bool(setup_required),
+        setup_required=setup_required,
+    )
 
 
 @router.get("/health", response_model=HealthResponse, tags=["System"])
@@ -110,6 +149,7 @@ async def predict(
 async def predict_stream(
     request_data: PredictionRequest,
     request: Request,
+    db: AsyncSession = Depends(get_db),
 ):
     request_id = getattr(request.state, "request_id", "unknown")
 
@@ -126,7 +166,7 @@ async def predict_stream(
             raise HTTPException(status_code=503, detail="Model not loaded")
 
         return StreamingResponse(
-            StreamingInferenceService.generate_stream(request_id, request_data),
+            StreamingInferenceService.generate_stream(request_id, request_data, db),
             media_type="text/event-stream",
             headers={
                 "X-Request-ID": request_id,
@@ -246,10 +286,21 @@ async def clear_cache():
 
 
 @router.post("/auth/login")
-async def login(username: str, password: str):
-    if username == settings.admin_username and password == settings.admin_password:
-        token = create_token(sub=username, role="admin")
-        return {"access_token": token, "token_type": "bearer"}
+async def login(credentials: LoginRequest):
+    if (
+        settings.demo_mode
+        and credentials.username == settings.demo_username
+        and credentials.password == settings.demo_password
+    ):
+        token = create_token(sub=credentials.username, role="viewer")
+        return {"access_token": token, "token_type": "bearer", "role": "viewer"}
+
+    if (
+        credentials.username == settings.admin_username
+        and credentials.password == settings.admin_password
+    ):
+        token = create_token(sub=credentials.username, role="admin")
+        return {"access_token": token, "token_type": "bearer", "role": "admin"}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 

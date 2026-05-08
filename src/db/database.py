@@ -82,6 +82,8 @@ async def init_db() -> None:
         _using_sqlite = False
         logger.info("Using PostgreSQL database")
     else:
+        if settings.environment == "production":
+            raise RuntimeError("PostgreSQL is required in production")
         _engine = _create_sqlite_engine()
         _using_sqlite = True
         logger.info(
@@ -96,8 +98,11 @@ async def init_db() -> None:
 
     try:
         async with _engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            logger.info("Database tables created/verified")
+            if settings.environment == "production":
+                logger.info("Skipping automatic schema creation in production")
+            else:
+                await conn.run_sync(Base.metadata.create_all)
+                logger.info("Database tables created/verified")
     except Exception as e:
         logger.warning(f"Database init skipped: {e}")
 

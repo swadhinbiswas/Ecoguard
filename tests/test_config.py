@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.core.config import Settings, settings
+from src.core.config import Settings, settings, validate_production_settings
 
 
 class TestSettings:
@@ -30,3 +30,45 @@ class TestSettings:
         assert settings.cache_enabled is False
         assert settings.cache_ttl_seconds == 300
         assert settings.cache_max_entries == 1000
+
+    def test_production_validation_rejects_unsafe_defaults(self, monkeypatch):
+        monkeypatch.setattr(settings, "environment", "production")
+        monkeypatch.setattr(settings, "auth_enabled", True)
+        monkeypatch.setattr(settings, "admin_username", "admin")
+        monkeypatch.setattr(settings, "admin_password", "admin")
+        monkeypatch.setattr(settings, "jwt_secret", "short")
+        monkeypatch.setattr(settings, "api_keys", ["eco-guard-dev-key"])
+        monkeypatch.setattr(settings, "cors_origins", ["*"])
+        monkeypatch.setattr(
+            settings, "database_url", "sqlite+aiosqlite:///data/ecoguard.db"
+        )
+
+        with pytest.raises(RuntimeError) as excinfo:
+            validate_production_settings()
+
+        message = str(excinfo.value)
+        assert "ADMIN_USERNAME/ADMIN_PASSWORD" in message
+        assert "JWT_SECRET" in message
+        assert "PostgreSQL" in message
+
+    def test_production_validation_allows_safe_config(self, monkeypatch):
+        monkeypatch.setattr(settings, "environment", "production")
+        monkeypatch.setattr(settings, "auth_enabled", True)
+        monkeypatch.setattr(settings, "admin_username", "owner")
+        monkeypatch.setattr(settings, "admin_password", "strong-password")
+        monkeypatch.setattr(settings, "jwt_secret", "x" * 32)
+        monkeypatch.setattr(settings, "api_keys", [])
+        monkeypatch.setattr(settings, "cors_origins", ["https://demo.example.com"])
+        monkeypatch.setattr(
+            settings,
+            "database_url",
+            "postgresql+asyncpg://user:pass@localhost:5432/ecoguard",
+        )
+
+        validate_production_settings()
+
+    def test_system_status_reports_setup_requirements(self):
+        from src.api.routes import _setup_required
+
+        required = _setup_required()
+        assert isinstance(required, list)

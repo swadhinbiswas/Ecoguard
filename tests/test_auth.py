@@ -1,6 +1,8 @@
 import pytest
+from httpx import ASGITransport, AsyncClient
 
-from src.core.auth import APIKeyStore, AuthMiddleware
+from src.core.auth import APIKeyStore, AuthMiddleware, is_public_path
+from src.main import app
 
 
 class TestAPIKeyStore:
@@ -35,3 +37,58 @@ class TestAPIKeyStore:
         assert self.store.key_count == 2
         self.store.revoke_key("a")
         assert self.store.key_count == 1
+
+
+class TestPublicPathMatching:
+    def test_root_is_public_but_not_every_path(self):
+        assert is_public_path("/") is True
+        assert is_public_path("/api/v1/health") is True
+        assert is_public_path("/static/app.css") is True
+        assert is_public_path("/api/v1/predict") is False
+        assert is_public_path("/dashboard/models") is False
+
+
+class TestLogin:
+    @pytest.mark.asyncio
+    async def test_login_accepts_json_body(self):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            r = await ac.post(
+                "/api/v1/auth/login",
+                json={"username": "admin", "password": "admin"},
+            )
+        assert r.status_code == 200
+        assert r.json()["token_type"] == "bearer"
+
+    @pytest.mark.asyncio
+    async def test_login_rejects_query_param_credentials(self):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            r = await ac.post("/api/v1/auth/login?username=admin&password=admin")
+        assert r.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_demo_login_returns_viewer_role(self, monkeypatch):
+        from src.core.config import settings
+
+        monkeypatch.setattr(settings, "demo_mode", True)
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            r = await ac.post(
+                "/api/v1/auth/login",
+                json={"username": "demo", "password": "demo"},
+            )
+        assert r.status_code == 200
+        assert r.json()["role"] == "viewer"
+
+    @pytest.mark.asyncio
+    async def test_demo_mode_blocks_mutating_routes(self, monkeypatch):
+        from src.core.config import settings
+
+        monkeypatch.setattr(settings, "demo_mode", True)
+        monkeypatch.setattr(settings, "demo_read_only", True)
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            r = await ac.post("/api/v1/mlops/jobs", json={})
+        assert r.status_code == 403
+        assert r.json()["error"]["code"] == "DEMO_READ_ONLY"

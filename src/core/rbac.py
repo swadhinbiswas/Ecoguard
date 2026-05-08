@@ -2,6 +2,8 @@ from enum import Enum
 
 from fastapi import HTTPException, Request
 
+from src.core.auth import is_public_path
+
 
 class Role(str, Enum):
     ADMIN = "admin"
@@ -13,17 +15,6 @@ ROLE_PERMISSIONS = {
     Role.ADMIN: {"read", "write", "delete", "admin"},
     Role.OPERATOR: {"read", "write"},
     Role.VIEWER: {"read"},
-}
-
-PUBLIC_PATHS = {
-    "/",
-    "/docs",
-    "/redoc",
-    "/openapi.json",
-    "/metrics",
-    "/api/v1/health",
-    "/api/v1/ready",
-    "/ws/metrics",
 }
 
 DASHBOARD_VIEWER_PATHS = {"/dashboard", "/dashboard/"}
@@ -38,15 +29,16 @@ DASHBOARD_PATHS = {
 
 
 async def get_current_role(request: Request) -> Role:
-    role_header = request.headers.get("X-Role", "viewer")
+    user = getattr(request.state, "user", None) or {}
+    role_value = user.get("role", "viewer")
     try:
-        return Role(role_header.lower())
+        return Role(str(role_value).lower())
     except ValueError:
         return Role.VIEWER
 
 
 async def require_role(required: str, request: Request) -> None:
-    if request.url.path in PUBLIC_PATHS:
+    if is_public_path(request.url.path):
         return
 
     role = await get_current_role(request)

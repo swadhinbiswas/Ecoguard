@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { setToken } from '../api/client'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('eco_token') || '')
   const user = ref(JSON.parse(localStorage.getItem('eco_user') || 'null'))
@@ -9,14 +11,15 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
 
   async function login(username, password) {
-    const url = new URL('/api/v1/auth/login', window.location.origin)
-    url.searchParams.set('username', username)
-    url.searchParams.set('password', password)
-    const r = await fetch(url, { method: 'POST' })
+    const r = await fetch(`${API_BASE}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
     if (!r.ok) throw new Error('Invalid credentials')
     const data = await r.json()
     token.value = data.access_token
-    user.value = { username, role: 'admin' }
+    user.value = { username, role: data.role || 'admin' }
     localStorage.setItem('eco_token', token.value)
     localStorage.setItem('eco_user', JSON.stringify(user.value))
     setToken(token.value)

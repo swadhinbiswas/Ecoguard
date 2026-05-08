@@ -1,6 +1,8 @@
 from fastapi import HTTPException, status
 
-MAX_INPUT_CHARS = 4000
+from src.core.config import settings
+
+MAX_INPUT_CHARS = settings.max_input_chars
 
 
 def sanitize_prompt(prompt: str) -> str:
@@ -10,10 +12,11 @@ def sanitize_prompt(prompt: str) -> str:
             status_code=status.HTTP_400_BAD_REQUEST, detail="Prompt cannot be empty"
         )
 
-    if len(prompt) > MAX_INPUT_CHARS:
+    max_chars = settings.max_input_chars
+    if len(prompt) > max_chars:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Prompt exceeds maximum character limit of {MAX_INPUT_CHARS}",
+            detail=f"Prompt exceeds maximum character limit of {max_chars}",
         )
 
     # Basic sanitization: strip null bytes

@@ -1,0 +1,52 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="28" fill="#0A0E14"/>
+  <circle cx="245" cy="105" r="220" fill="#4DA6FF" opacity="0.13"/>
+  <circle cx="1020" cy="620" r="260" fill="#3FB950" opacity="0.10"/>
+  <rect x="40" y="40" width="1120" height="640" rx="24" fill="#101720" stroke="#293040"/>
+  <rect x="40" y="40" width="240" height="640" rx="24" fill="#141B22"/>
+  <rect x="72" y="78" width="36" height="36" rx="10" fill="#4DA6FF"/>
+  <text x="121" y="96" fill="#4DA6FF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Eco-Guard</text>
+  <text x="121" y="115" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12">MLOps Platform</text>
+  <g font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600">
+    <rect x="64" y="154" width="192" height="38" rx="10" fill="#4DA6FF"/>
+    <text x="94" y="178" fill="white">Overview</text>
+    <text x="94" y="230" fill="#8997A9">Model Registry</text>
+    <text x="94" y="278" fill="#8997A9">Inference</text>
+    <text x="94" y="326" fill="#8997A9">Drift Monitor</text>
+    <text x="94" y="374" fill="#8997A9">Experiments</text>
+    <text x="94" y="422" fill="#8997A9">Training Jobs</text>
+    <text x="94" y="470" fill="#8997A9">Datasets</text>
+  </g>
+  <text x="322" y="96" fill="#CDD6E0" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Platform Overview</text>
+  <text x="322" y="124" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="15">Self-hosted LLM inference gateway with monitoring and MLOps primitives</text>
+  <rect x="322" y="158" width="792" height="112" rx="18" fill="#152030" stroke="#293040"/>
+  <text x="350" y="194" fill="#4DA6FF" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="800">ALPHA DEMO</text>
+  <text x="350" y="226" fill="#CDD6E0" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="800">Explore Eco-Guard safely</text>
+  <text x="350" y="252" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="14">Read-only dashboard for model registry, inference logs, drift triggers, jobs, and datasets.</text>
+  <g>
+    <rect x="322" y="298" width="178" height="104" rx="16" fill="#141B22" stroke="#293040"/>
+    <text x="344" y="327" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">DATABASE</text>
+    <text x="344" y="363" fill="#3FB950" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800">Connected</text>
+    <text x="344" y="384" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12">PostgreSQL</text>
+    <rect x="520" y="298" width="178" height="104" rx="16" fill="#141B22" stroke="#293040"/>
+    <text x="542" y="327" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">MODEL</text>
+    <text x="542" y="363" fill="#F85149" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800">Offline</text>
+    <text x="542" y="384" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12">Connect backend</text>
+    <rect x="718" y="298" width="178" height="104" rx="16" fill="#141B22" stroke="#293040"/>
+    <text x="740" y="327" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">RATE LIMIT</text>
+    <text x="740" y="363" fill="#4DA6FF" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800">Active</text>
+    <text x="740" y="384" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12">Per IP</text>
+    <rect x="916" y="298" width="198" height="104" rx="16" fill="#141B22" stroke="#293040"/>
+    <text x="938" y="327" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">MODE</text>
+    <text x="938" y="363" fill="#D29922" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800">Demo</text>
+    <text x="938" y="384" fill="#8997A9" font-family="Inter, Arial, sans-serif" font-size="12">Read-only</text>
+  </g>
+  <rect x="322" y="432" width="792" height="178" rx="18" fill="#141B22" stroke="#293040"/>
+  <text x="350" y="470" fill="#CDD6E0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800">Recent Requests</text>
+  <line x1="350" y1="496" x2="1084" y2="496" stroke="#293040"/>
+  <g font-family="Inter, Arial, sans-serif" font-size="13">
+    <text x="350" y="526" fill="#8997A9">Request ID</text><text x="600" y="526" fill="#8997A9">Latency</text><text x="740" y="526" fill="#8997A9">Tokens</text><text x="870" y="526" fill="#8997A9">Drift</text>
+    <text x="350" y="562" fill="#CDD6E0">req_9fa4...</text><text x="600" y="562" fill="#CDD6E0">842 ms</text><text x="740" y="562" fill="#CDD6E0">128</text><text x="870" y="562" fill="#3FB950">0.041</text>
+    <text x="350" y="594" fill="#CDD6E0">req_3bd1...</text><text x="600" y="594" fill="#CDD6E0">1.2 s</text><text x="740" y="594" fill="#CDD6E0">244</text><text x="870" y="594" fill="#D29922">0.512</text>
+  </g>
+</svg>

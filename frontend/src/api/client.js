@@ -1,11 +1,11 @@
-const BASE = ''
+const BASE = import.meta.env.VITE_API_BASE_URL || ''
 let authToken = localStorage.getItem('eco_token')
 
 export function setToken(t) { authToken = t }
 export function getToken() { return authToken }
 
 export async function request(method, path, body = null, params = {}) {
-  const url = new URL(path, window.location.origin)
+  const url = new URL(path, BASE || window.location.origin)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
   const headers = { 'Content-Type': 'application/json' }

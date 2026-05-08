@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.core.config import settings
 
-PUBLIC_PATHS = {
+PUBLIC_EXACT_PATHS = {
     "/",
     "/docs",
     "/redoc",
@@ -17,11 +17,21 @@ PUBLIC_PATHS = {
     "/metrics",
     "/api/v1/health",
     "/api/v1/ready",
+    "/api/v1/system/status",
     "/dashboard/login",
-    "/static/",
     "/api/v1/auth/login",
     "/api/v1/auth/status",
 }
+
+PUBLIC_PATH_PREFIXES = (
+    "/static/",
+    "/docs/",
+    "/redoc/",
+)
+
+
+def is_public_path(path: str) -> bool:
+    return path in PUBLIC_EXACT_PATHS or path.startswith(PUBLIC_PATH_PREFIXES)
 
 
 def create_token(sub: str = "admin", role: str = "admin") -> str:
@@ -51,7 +61,7 @@ def verify_request(request: Request) -> dict | None:
     if token:
         return decode_token(token)
 
-    api_key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
+    api_key = request.headers.get("X-API-Key")
     if api_key and api_key in set(settings.api_keys):
         return {"sub": "api-key", "role": "admin"}
 
@@ -69,9 +79,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if not self.require_auth:
             return await call_next(request)
 
-        for public in PUBLIC_PATHS:
-            if path.startswith(public):
-                return await call_next(request)
+        if is_public_path(path):
+            return await call_next(request)
 
         user = verify_request(request)
         if user is None:

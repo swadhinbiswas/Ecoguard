@@ -1,11 +1,8 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build && cd ..",
   "outputDirectory": "frontend/dist",
-  "installCommand": "pip install -r requirements.txt",
+  "installCommand": "cd frontend && npm install",
   "routes": [
-    { "src": "/api/(.*)", "dest": "src.main:app" },
-    { "src": "/metrics", "dest": "src.main:app" },
-    { "src": "/ws/(.*)", "dest": "src.main:app" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

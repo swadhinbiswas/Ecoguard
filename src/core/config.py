@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,6 +51,12 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin"
 
+    demo_mode: bool = False
+    demo_username: str = "demo"
+    demo_password: str = "demo"
+    demo_read_only: bool = True
+    demo_allow_inference: bool = False
+
     backend: Literal["llama-cpp", "vllm", "tgi", "ollama", "openai"] = "llama-cpp"
     backend_url: str = "http://localhost:8001"
     backend_api_key: str = ""
@@ -74,6 +81,15 @@ class Settings(BaseSettings):
 
     otlp_endpoint: str = ""
 
+    @field_validator("database_url")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql+asyncpg://", 1)
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return value
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -82,3 +98,32 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def validate_production_settings() -> None:
+    if settings.environment != "production":
+        return
+
+    errors: list[str] = []
+    if settings.auth_enabled:
+        if (
+            not settings.demo_mode
+            and settings.admin_username == "admin"
+            and settings.admin_password == "admin"
+        ):
+            errors.append("ADMIN_USERNAME/ADMIN_PASSWORD must be changed")
+        if (
+            settings.jwt_secret == "eco-guard-jwt-secret-change-in-production"
+            or len(settings.jwt_secret) < 32
+        ):
+            errors.append("JWT_SECRET must be at least 32 characters and not a default")
+        if "eco-guard-dev-key" in settings.api_keys:
+            errors.append("default development API key must be removed")
+    if settings.cors_origins == ["*"]:
+        errors.append("CORS_ORIGINS must be restricted")
+    if not settings.database_url.startswith("postgresql+asyncpg://"):
+        errors.append("DATABASE_URL must point to PostgreSQL")
+
+    if errors:
+        joined = "; ".join(errors)
+        raise RuntimeError(f"Unsafe production configuration: {joined}")

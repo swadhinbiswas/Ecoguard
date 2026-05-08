@@ -18,10 +18,12 @@ from src.api.websocket import metrics_broadcast_loop, ws_router
 from src.core.auth import AuthMiddleware, get_api_key_store
 from src.core.backend import get_backend, init_backend, shutdown_backend
 from src.core.concurrency import inference_limiter
-from src.core.config import settings
+from src.core.config import settings, validate_production_settings
+from src.core.demo import DemoModeMiddleware
 from src.core.error_codes import ErrorCode
 from src.core.logging import logger
 from src.core.middleware import RequestLoggingMiddleware
+from src.core.rate_limiter import RateLimitMiddleware
 from src.core.timeout import TimeoutMiddleware
 from src.core.tracing import setup_tracing
 from src.db.database import check_db_health, close_db, init_db
@@ -36,6 +38,7 @@ _shutting_down = False
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _shutting_down
+    validate_production_settings()
     logger.info(
         f"Starting Eco-Guard API v{settings.app_version} [{settings.environment}]"
     )
@@ -134,7 +137,9 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 if settings.metrics_enabled:
     app.add_middleware(PrometheusMetricsMiddleware)
 
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware, require_auth=settings.auth_enabled)
+app.add_middleware(DemoModeMiddleware)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

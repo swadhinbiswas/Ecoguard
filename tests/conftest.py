@@ -2,10 +2,16 @@ import os
 
 import pytest
 
+os.environ["ENVIRONMENT"] = "test"
+os.environ["LOG_LEVEL"] = "ERROR"
+os.environ["METRICS_ENABLED"] = "true"
+os.environ["RATE_LIMIT_ENABLED"] = "false"
+os.environ["AUTH_ENABLED"] = "false"
+
 
 @pytest.fixture(autouse=True)
 def set_test_env():
-    os.environ["ENVIRONMENT"] = "development"
+    os.environ["ENVIRONMENT"] = "test"
     os.environ["LOG_LEVEL"] = "ERROR"
     os.environ["METRICS_ENABLED"] = "true"
     os.environ["RATE_LIMIT_ENABLED"] = "false"
