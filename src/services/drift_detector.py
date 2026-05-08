@@ -8,6 +8,7 @@ class StatisticalDriftDetector:
     Placeholder implementation for monitoring statistical drift in inference distribution.
     Maintains a rolling window to detect distribution shifts in generation length and latency.
     """
+
     def __init__(self, window_size: int = 100):
         self.window_size = window_size
         self._latency_history: List[float] = []
@@ -34,5 +35,6 @@ class StatisticalDriftDetector:
         # Normalize arbitrarily to a 0.0 - 1.0 risk scale for the API
         drift_score = min(1.0, z_score / 10.0)
         return float(drift_score)
+
 
 drift_detector = StatisticalDriftDetector()

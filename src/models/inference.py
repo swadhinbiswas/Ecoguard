@@ -10,7 +10,9 @@ class InferenceLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(String, unique=True, index=True, nullable=False)
-    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    timestamp = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
     input_text = Column(Text, nullable=False)
     prediction_output = Column(Text, nullable=False)
     latency_ms = Column(Float, nullable=False)
