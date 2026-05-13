@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eco-Guard — LLM Inference Gateway</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text2: #8b949e;
+      --accent: #4da6ff;
+      --accent2: #3fb950;
+      --radius: 8px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .hero { text-align: center; padding: 80px 24px 48px; }
+    .logo { width: 72px; height: 72px; margin-bottom: 24px; display: inline-block; }
+    .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: 16px; color: var(--text2); max-width: 480px; margin: 0 auto 24px; line-height: 1.5; }
+    .hero .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; margin: 0 4px 8px; }
+    .badge.green { background: rgba(63,185,80,.15); color: var(--accent2); }
+    .badge.blue { background: rgba(77,166,255,.15); color: var(--accent); }
+    .badge.purple { background: rgba(188,140,255,.15); color: #bc8cff; }
+    .badge.amber { background: rgba(210,153,34,.15); color: #d29922; }
+
+    .actions { display: flex; justify-content: center; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .btn { padding: 12px 28px; border-radius: var(--radius); font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #3d8eeb; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--text2); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 720px; margin: 0 auto; padding: 0 24px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 16px; text-align: center; }
+    .stat .value { font-size: 28px; font-weight: 800; color: var(--accent); }
+    .stat .label { font-size: 11px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 960px; margin: 48px auto; padding: 0 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .card p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+    .footer { margin-top: auto; text-align: center; padding: 32px 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+    .status-bar { display: flex; justify-content: center; gap: 20px; padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 12px; }
+    .status-bar .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot.green { background: var(--accent2); }
+    .dot.yellow { background: #d29922; }
+    .dot.red { background: #f85149; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 26px; }
+      .features { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="status-bar" id="status">
+    <span><span class="dot" id="db-dot"></span>Database: <span id="db-status">—</span></span>
+    <span><span class="dot" id="model-dot"></span>Model: <span id="model-status">—</span></span>
+    <span><span class="dot" id="redis-dot"></span>Redis: <span id="redis-status">—</span></span>
+    <span><span class="dot" id="gpu-dot"></span>GPU: <span id="gpu-status">—</span></span>
+  </div>
+
+  <div class="hero">
+    <svg class="logo" viewBox="0 0 64 64" fill="none">
+      <defs><linearGradient id="g" x1="8" y1="4" x2="56" y2="60"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+      <path d="M32 4L56 14v18c0 16-10.67 22.67-24 28C18.67 54.67 8 48 8 32V14L32 4Z" fill="url(#g)" stroke="url(#g)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M32 10l18 7.5v13c0 11.5-7.5 17-18 21-10.5-4-18-9.5-18-21v-13L32 10Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+      <circle cx="32" cy="22" r="2.5" fill="url(#g)"/><circle cx="25" cy="30" r="2" fill="url(#g)"/><circle cx="39" cy="30" r="2" fill="url(#g)"/><circle cx="32" cy="38" r="2" fill="url(#g)"/><circle cx="21" cy="46" r="1.8" fill="url(#g)"/><circle cx="43" cy="46" r="1.8" fill="url(#g)"/>
+      <line x1="32" y1="22" x2="25" y2="30" stroke="url(#g)" stroke-width="1.2" stroke-linecap="round"/><line x1="32" y1="22" x2="39" y2="30" stroke="url(#g)" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="25" y1="30" x2="32" y2="38" stroke="url(#g)" stroke-width="1" stroke-linecap="round"/><line x1="39" y1="30" x2="32" y2="38" stroke="url(#g)" stroke-width="1" stroke-linecap="round"/>
+      <line x1="32" y1="38" x2="21" y2="46" stroke="url(#g)" stroke-width="0.9" stroke-linecap="round"/><line x1="32" y1="38" x2="43" y2="46" stroke="url(#g)" stroke-width="0.9" stroke-linecap="round"/>
+    </svg>
+    <h1><span>Eco</span>-Guard</h1>
+    <p>Self-hosted LLM inference gateway with OpenAI compatibility, cost tracking, guardrails, and MLOps — all in one binary.</p>
+    <div>
+      <span class="badge green">OpenAI Compatible</span>
+      <span class="badge blue">Multi-Model</span>
+      <span class="badge purple">MLOps Built-in</span>
+      <span class="badge amber">Self-Hosted</span>
+    </div>
+    <div class="actions">
+      <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+      <a href="/docs" class="btn btn-outline">API Documentation</a>
+      <a href="/metrics" class="btn btn-outline">Metrics</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="value" id="stat-routes">210+</div><div class="label">API Endpoints</div></div>
+    <div class="stat"><div class="value" id="stat-models">6</div><div class="label">Backends</div></div>
+    <div class="stat"><div class="value" id="stat-db">19</div><div class="label">DB Tables</div></div>
+    <div class="stat"><div class="value">173</div><div class="label">Tests Passing</div></div>
+  </div>
+
+  <div class="features">
+    <div class="card">
+      <h3>OpenAI-Compatible API</h3>
+      <p>Drop-in replacement for /v1/chat/completions, /v1/embeddings, /v1/models. Works with any OpenAI SDK client.</p>
+    </div>
+    <div class="card">
+      <h3>Multi-Backend Support</h3>
+      <p>llama.cpp, Ollama, vLLM, TGI, and any OpenAI-compatible server. Hot-swap backends at runtime.</p>
+    </div>
+    <div class="card">
+      <h3>Guardrails &amp; Safety</h3>
+      <p>Prompt injection detection, PII redaction, content safety. Block, flag, or sanitize per stage.</p>
+    </div>
+    <div class="card">
+      <h3>Cost Tracking</h3>
+      <p>Per-model pricing with budget caps. Compare costs across 6 providers before every request.</p>
+    </div>
+    <div class="card">
+      <h3>MLOps Platform</h3>
+      <p>Model registry, deployment strategies, drift detection, experiment tracking, auto-retraining pipeline.</p>
+    </div>
+    <div class="card">
+      <h3>Production Ready</h3>
+      <p>JWT auth, rate limiting, circuit breaker, Redis-backed state, Docker, Kubernetes, Terraform, CI/CD.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    Eco-Guard v{{ version }} &middot; {{ environment }} &middot; <a href="https://github.com/eco-guard/eco-guard" style="color:var(--accent)">GitHub</a>
+  </div>
+
+  <script>
+    fetch('/api/v1/health/enhanced')
+      .then(r => r.json())
+      .then(d => {
+        const c = d.checks || {};
+        setStatus('db', c.database === 'connected');
+        setStatus('model', c.model === 'loaded');
+        setStatus('redis', c.redis === 'connected');
+        setStatus('gpu', c.gpu ? c.gpu.startsWith('available') : false);
+      })
+      .catch(() => {
+        setStatus('db', null); setStatus('model', null); setStatus('redis', null); setStatus('gpu', null);
+      });
+
+    function setStatus(name, ok) {
+      const el = document.getElementById(name + '-status');
+      const dot = document.getElementById(name + '-dot');
+      if (ok === true) { el.textContent = 'Online'; dot.className = 'dot green'; }
+      else if (ok === false) { el.textContent = 'Offline'; dot.className = 'dot red'; }
+      else { el.textContent = '—'; dot.className = 'dot yellow'; }
+    }
+
+    fetch('/api/v1/health')
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('stat-routes').textContent = '210+';
+      });
+  </script>
+</body>
+</html>

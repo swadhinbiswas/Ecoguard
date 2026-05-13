@@ -5,7 +5,7 @@
       <p>Recent request volume, latency, tokens, and drift from the gateway.</p>
     </div>
     <div class="stats-grid">
-      <div class="stat" v-for="s in stats" :key="s.label">
+      <div class="stat-card" v-for="s in stats" :key="s.label">
         <span>{{ s.label }}</span>
         <strong>{{ s.value }}</strong>
         <small>{{ s.sub }}</small>
@@ -28,7 +28,7 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="empty">No inference logs yet. Send requests to <code>/api/v1/predict</code> to populate this page.</div>
+      <div v-else class="empty-state">No inference logs yet. Send requests to <code>/api/v1/predict</code> to populate this page.</div>
     </div>
   </main>
 </template>
@@ -45,10 +45,10 @@ function formatMs(v) { return v == null ? '—' : `${Number(v).toFixed(1)} ms` }
 function formatDrift(v) { return v == null ? '—' : Number(v).toFixed(3) }
 function formatDate(v) { return v ? new Date(v).toLocaleString() : '—' }
 function driftClass(v) {
-  if (v == null) return 'blue'
-  if (v >= 0.8) return 'red'
-  if (v >= 0.5) return 'yellow'
-  return 'green'
+  if (v == null) return 'badge-blue'
+  if (v >= 0.8) return 'badge-red'
+  if (v >= 0.5) return 'badge-yellow'
+  return 'badge-green'
 }
 
 async function load() {

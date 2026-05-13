@@ -1,3 +1,5 @@
+import asyncio
+
 from src.core.backend import get_backend
 from src.core.config import settings
 
@@ -6,6 +8,7 @@ class ModelRouter:
     def __init__(self):
         self._routes: dict[str, str] = {}
         self._default: str = settings.model_path
+        self._lock = asyncio.Lock()
 
     def add_rule(self, pattern: str, model_path: str) -> None:
         self._routes[pattern.lower()] = model_path
@@ -20,11 +23,14 @@ class ModelRouter:
                 return mp
         return self._default
 
-    def resolve(self, prompt: str) -> str:
+    async def resolve(self, prompt: str) -> str:
         target = self.get_route(prompt)
         current = get_backend().info.get("path")
         if target != current:
-            get_backend().load(target)
+            async with self._lock:
+                backend = get_backend()
+                if backend.info.get("path") != target:
+                    backend.load(target)
         return target
 
     @property

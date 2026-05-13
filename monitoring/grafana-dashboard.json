@@ -1,0 +1,198 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "steps": [] } },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 4, "x": 0, "y": 0 },
+      "id": 1, "title": "Model Status",
+      "type": "stat",
+      "targets": [{ "expr": "ecoguard_model_loaded", "refId": "A" }],
+      "options": { "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "pluginVersion": "10.0.0"
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 4, "y": 0 },
+      "id": 2, "title": "Requests/sec",
+      "type": "stat",
+      "targets": [{ "expr": "rate(ecoguard_requests_total[1m])", "refId": "A" }],
+      "options": { "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 8, "y": 0 },
+      "id": 3, "title": "Avg Latency",
+      "type": "stat",
+      "targets": [{ "expr": "avg(ecoguard_inference_latency_ms)", "refId": "A" }],
+      "options": { "colorMode": "value", "graphMode": "area", "unit": "ms" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 12, "y": 0 },
+      "id": 4, "title": "Queue Depth",
+      "type": "stat",
+      "targets": [{ "expr": "ecoguard_queue_depth_total", "refId": "A" }],
+      "options": { "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 16, "y": 0 },
+      "id": 5, "title": "Rate Limited",
+      "type": "stat",
+      "targets": [{ "expr": "rate(ecoguard_rate_limited_total[5m])", "refId": "A" }],
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 20, "y": 0 },
+      "id": 6, "title": "Drift Score",
+      "type": "stat",
+      "targets": [{ "expr": "ecoguard_drift_score", "refId": "A" }],
+      "options": { "colorMode": "value", "graphMode": "area", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 0.8 }] } }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 6 },
+      "id": 10, "title": "Latency (P50/P95/P99)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(ecoguard_latency_bucket[5m]))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, rate(ecoguard_latency_bucket[5m]))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, rate(ecoguard_latency_bucket[5m]))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 6 },
+      "id": 11, "title": "Request Rate",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(ecoguard_requests_total[1m])", "legendFormat": "Requests/sec", "refId": "A" },
+        { "expr": "rate(ecoguard_rate_limited_total[1m])", "legendFormat": "Rate Limited/sec", "refId": "B" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 18 },
+      "id": 20, "title": "GPU Utilization",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ecoguard_gpu_utilization_percent{device='0'}", "legendFormat": "GPU {{device}}", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "list" }, "unit": "percent" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 18 },
+      "id": 21, "title": "GPU Memory",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ecoguard_gpu_memory_used_mb{device='0'}", "legendFormat": "Used (MB)", "refId": "A" },
+        { "expr": "ecoguard_gpu_memory_total_mb{device='0'}", "legendFormat": "Total (MB)", "refId": "B" }
+      ],
+      "options": { "legend": { "displayMode": "list" }, "unit": "MB" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 18 },
+      "id": 22, "title": "GPU Temperature & Power",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ecoguard_gpu_temperature_celsius{device='0'}", "legendFormat": "Temp °C", "refId": "A" },
+        { "expr": "ecoguard_gpu_power_draw_watts{device='0'}", "legendFormat": "Power (W)", "refId": "B" }
+      ],
+      "options": { "legend": { "displayMode": "list" } }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 28 },
+      "id": 30, "title": "Token Usage Rate",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(ecoguard_tokens_total[5m])", "legendFormat": "Tokens/sec", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 28 },
+      "id": 31, "title": "Cache Hit Rate",
+      "type": "stat",
+      "targets": [
+        { "expr": "rate(ecoguard_cache_hits_total[5m]) / rate(ecoguard_cache_requests_total[5m])", "refId": "A" }
+      ],
+      "options": { "colorMode": "value", "graphMode": "area", "unit": "percentunit" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 28 },
+      "id": 32, "title": "Concurrency",
+      "type": "gauge",
+      "targets": [
+        { "expr": "ecoguard_concurrency_in_use", "legendFormat": "In Use", "refId": "A" },
+        { "expr": "ecoguard_concurrency_max", "legendFormat": "Max", "refId": "B" }
+      ],
+      "options": { "orientation": "horizontal" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 28 },
+      "id": 33, "title": "Error Rate",
+      "type": "stat",
+      "targets": [
+        { "expr": "rate(ecoguard_errors_total[5m])", "refId": "A" }
+      ],
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "id": 40, "title": "Anomaly Detection Events",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(ecoguard_anomalies_total[5m])", "legendFormat": "Anomalies", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "id": 41, "title": "Budget Usage",
+      "type": "bargauge",
+      "targets": [
+        { "expr": "ecoguard_budget_usage_pct", "legendFormat": "Budget %", "refId": "A" }
+      ],
+      "options": { "orientation": "horizontal" }
+    },
+    {
+      "datasource": { "type": "prometheus" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 44 },
+      "id": 50, "title": "Health Status",
+      "type": "stat",
+      "targets": [
+        { "expr": "ecoguard_health_status", "legendFormat": "Health", "refId": "A" },
+        { "expr": "ecoguard_db_connected", "legendFormat": "DB", "refId": "B" }
+      ],
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["eco-guard", "llm", "inference"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Eco-Guard — LLM Inference Dashboard",
+  "uid": "ecoguard-main",
+  "version": 1
+}

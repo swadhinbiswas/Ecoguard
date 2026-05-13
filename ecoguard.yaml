@@ -1,0 +1,49 @@
+# Eco-Guard GitOps Configuration
+# Place this file at the root of your project.
+# It hot-reloads every 10 seconds — no restart needed.
+# git push to reconfigure your inference gateway.
+
+# Model routing rules: prompt pattern → model path
+routes:
+  "code": "/app/models/codellama.gguf"
+  "translate": "/app/models/tinyllama.gguf"
+  "math": "/app/models/mistral.gguf"
+
+# Model pricing (USD per 1000 tokens)
+models:
+  llama-3-8b:
+    input_cost_per_1k: 0.00006
+    output_cost_per_1k: 0.00006
+  gpt-4o:
+    input_cost_per_1k: 0.0025
+    output_cost_per_1k: 0.01
+  custom-model:
+    input_cost_per_1k: 0.001
+    output_cost_per_1k: 0.002
+
+# Preloaded API keys (hashed at startup)
+api_keys: []
+
+# Rate limiting configuration
+rate_limits:
+  requests: 100
+  window_seconds: 60
+
+# Guardrails (choose which to enable)
+guardrails:
+  enabled:
+    - pii              # Redact PII from prompts
+    - injection        # Block prompt injection attempts
+    - content_safety   # Flag harmful content
+
+# Fallback chain (used when a model fails)
+fallback:
+  steps:
+    - model: "llama-3-8b"
+      backend_url: "http://localhost:8080"
+      timeout_seconds: 30
+    - model: "gpt-4o"
+      backend_url: "http://openai-proxy:8001"
+      timeout_seconds: 15
+    - model: "llama-3-8b"
+      timeout_seconds: 10

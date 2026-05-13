@@ -10,18 +10,15 @@ repos:
       - id: check-added-large-files
       - id: detect-private-key
       - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.292
+    rev: v0.11.0
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --unsafe-fixes]
       - id: ruff-format
-
-  - repo: https://github.com/psf/black
-    rev: 23.9.1
-    hooks:
-      - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1
@@ -32,3 +29,4 @@ repos:
           - sqlalchemy>=2.0.21
           - types-orjson
         args: [--ignore-missing-imports]
+        verbose: true

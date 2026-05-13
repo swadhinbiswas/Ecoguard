@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     port: int = 8000
     workers: int = 1
 
-    database_url: str = "postgresql+asyncpg://postgres:password@localhost:5432/ecoguard"
+    database_url: str = ""
     db_pool_size: int = 20
     db_max_overflow: int = 10
     db_pool_timeout: int = 30
@@ -27,7 +27,6 @@ class Settings(BaseSettings):
     model_n_batch: int = 512
 
     max_input_chars: int = 4000
-    allowed_hosts: list[str] = ["*"]
     cors_origins: list[str] = ["*"]
 
     rate_limit_enabled: bool = True
@@ -44,12 +43,12 @@ class Settings(BaseSettings):
     metrics_enabled: bool = True
 
     auth_enabled: bool = True
-    api_keys: list[str] = ["eco-guard-dev-key"]
-    jwt_secret: str = "eco-guard-jwt-secret-change-in-production"
+    api_keys: list[str] = []
+    jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
-    admin_username: str = "admin"
-    admin_password: str = "admin"
+    admin_username: str = ""
+    admin_password: str = ""
 
     demo_mode: bool = False
     demo_username: str = "demo"
@@ -80,6 +79,13 @@ class Settings(BaseSettings):
     shutdown_drain_timeout: float = 15.0
 
     otlp_endpoint: str = ""
+    redis_url: str = ""
+    guardrails_enabled: bool = False
+    ip_allowlist: list[str] = []
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    github_client_id: str = ""
+    github_client_secret: str = ""
 
     @field_validator("database_url")
     @classmethod
@@ -106,22 +112,15 @@ def validate_production_settings() -> None:
 
     errors: list[str] = []
     if settings.auth_enabled:
-        if (
-            not settings.demo_mode
-            and settings.admin_username == "admin"
-            and settings.admin_password == "admin"
-        ):
-            errors.append("ADMIN_USERNAME/ADMIN_PASSWORD must be changed")
-        if (
-            settings.jwt_secret == "eco-guard-jwt-secret-change-in-production"
-            or len(settings.jwt_secret) < 32
-        ):
-            errors.append("JWT_SECRET must be at least 32 characters and not a default")
-        if "eco-guard-dev-key" in settings.api_keys:
-            errors.append("default development API key must be removed")
+        if not settings.admin_username or not settings.admin_password:
+            errors.append("ADMIN_USERNAME/ADMIN_PASSWORD must be set")
+        if not settings.jwt_secret or len(settings.jwt_secret) < 32:
+            errors.append("JWT_SECRET must be at least 32 characters")
     if settings.cors_origins == ["*"]:
         errors.append("CORS_ORIGINS must be restricted")
-    if not settings.database_url.startswith("postgresql+asyncpg://"):
+    if not settings.database_url:
+        errors.append("DATABASE_URL is required")
+    elif not settings.database_url.startswith("postgresql+asyncpg://"):
         errors.append("DATABASE_URL must point to PostgreSQL")
 
     if errors:

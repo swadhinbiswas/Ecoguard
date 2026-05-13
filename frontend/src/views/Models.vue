@@ -1,7 +1,7 @@
 <template>
   <main class="content">
     <div class="page-header"><h2>Model Registry</h2><p>Manage model versions</p></div>
-    <div class="card" v-if="!items.length"><div class="empty">No models registered yet</div></div>
+    <div class="card" v-if="!items.length"><div class="empty-state">No models registered yet</div></div>
     <div class="card" v-else><table><thead><tr><th>Name</th><th>Version</th><th>Status</th><th>Base Model</th></tr></thead>
     <tbody><tr v-for="m in items" :key="m.id"><td><strong>{{ m.name }}</strong></td><td class="mono">{{ m.version }}</td><td><span class="badge" :class="statusClass(m.status)">{{ m.status }}</span></td><td>{{ m.base_model || '—' }}</td></tr></tbody></table></div>
   </main>
@@ -10,7 +10,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../api/client'
 const items = ref([])
-function statusClass(s) { return { production: 'green', staging: 'yellow', archived: 'red' }[s] || 'blue' }
+function statusClass(s) { return { production: 'badge-green', staging: 'badge-yellow', archived: 'badge-red' }[s] || 'badge-blue' }
 onMounted(async () => { try { const r = await api.get('/api/v1/mlops/models'); items.value = r.items } catch {} })
 </script>
 <style scoped>

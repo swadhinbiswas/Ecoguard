@@ -5,8 +5,8 @@
       <p>Fine-tuning datasets created from inference logs.</p>
     </div>
     <div class="stats-grid">
-      <div class="stat"><span>Total Datasets</span><strong>{{ stats.total_datasets ?? 0 }}</strong></div>
-      <div class="stat"><span>Total Records</span><strong>{{ stats.total_records ?? 0 }}</strong></div>
+      <div class="stat-card"><span>Total Datasets</span><strong>{{ stats.total_datasets ?? 0 }}</strong></div>
+      <div class="stat-card"><span>Total Records</span><strong>{{ stats.total_records ?? 0 }}</strong></div>
     </div>
     <div class="card">
       <div class="card-head">
@@ -25,7 +25,7 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="empty">No datasets yet. Use the dataset API or drift pipeline to create one from inference logs.</div>
+      <div v-else class="empty-state">No datasets yet. Use the dataset API or drift pipeline to create one from inference logs.</div>
     </div>
   </main>
 </template>

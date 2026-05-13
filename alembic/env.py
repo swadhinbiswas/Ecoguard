@@ -4,7 +4,30 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 from src.db.database import Base
-from src.models.inference import InferenceLog
+from src.models.inference import InferenceLog  # noqa: F401
+
+# Import all models so autogenerate detects all tables
+from src.mlops.models import (  # noqa: F401
+    Dataset,
+    Deployment,
+    ModelRegistry,
+    RetrainingTrigger,
+    TrainingExperiment,
+    TrainingJob,
+)
+from src.core.workspaces import (  # noqa: F401
+    Workspace,
+    WorkspaceMember,
+    WorkspaceAPIKey,
+    TokenQuota,
+)
+from src.mlops.dashboard_data import PromptTemplate, AlertRule  # noqa: F401
+from src.mlops.advanced import PromptVersion, ABTestResult, UserFeedback  # noqa: F401
+from src.core.agent_tracing import AgentTrace  # noqa: F401
+from src.mlops.rag import Document, DocumentChunk  # noqa: F401
+from src.core.enterprise import Budget, ScalingRule  # noqa: F401
+from src.mlops.quality import RegressionCheck, AnomalyLog  # noqa: F401
+from src.mlops.gov import ScheduledJob, ScheduledJobRun, AuditEntry  # noqa: F401
 from src.core.config import settings
 
 config = context.config

@@ -11,9 +11,18 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from src.api.dashboard_routes import dashboard
+from src.api.advanced_routes import advanced_router
+from src.api.dashboard_data_routes import dashboard_data_router
+from src.api.enterprise_routes import enterprise_router
+from src.api.finals_routes import finals_router
+from src.api.gap_routes import final_features_router
+from src.api.missing_routes import missing_routes
 from src.api.mlops_routes import mlops_router
+from src.api.openai_routes import openai_router
+from src.api.polish_routes import polish_router
+from src.api.production_routes import production_router
 from src.api.routes import router
+from src.api.toolkit_routes import toolkit_router
 from src.api.websocket import metrics_broadcast_loop, ws_router
 from src.core.auth import AuthMiddleware, get_api_key_store
 from src.core.backend import get_backend, init_backend, shutdown_backend
@@ -146,7 +155,16 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(router)
 app.include_router(mlops_router)
-app.include_router(dashboard)
+app.include_router(openai_router)
+app.include_router(enterprise_router)
+app.include_router(finals_router)
+app.include_router(final_features_router)
+app.include_router(missing_routes)
+app.include_router(polish_router)
+app.include_router(production_router)
+app.include_router(toolkit_router)
+app.include_router(dashboard_data_router)
+app.include_router(advanced_router)
 app.include_router(ws_router)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
@@ -158,12 +176,15 @@ async def metrics():
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return {
-        "service": "Eco-Guard",
-        "version": settings.app_version,
-        "environment": settings.environment,
-        "docs": "/docs",
-    }
+    from fastapi.responses import HTMLResponse
+
+    html = (
+        open("src/templates/landing.html")
+        .read()
+        .replace("{{ version }}", settings.app_version)
+        .replace("{{ environment }}", settings.environment)
+    )
+    return HTMLResponse(content=html)
 
 
 @app.get("/api/v1/benchmark", tags=["System"])

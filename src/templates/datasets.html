@@ -54,7 +54,7 @@
                     </span>
                 </td>
                 <td><span class="tag">{{ d.source }}</span></td>
-                <td><span style="color:var(--text2);font-size:12px">{{ d.created_at[:19] if d.created_at else '—' }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ d.created_at.isoformat()[:19] if d.created_at else '—' }}</span></td>
                 <td><span class="mono" style="font-size:11px" title="{{ d.file_path }}">{{ d.file_path or '—' }}</span></td>
             </tr>
             {% endfor %}

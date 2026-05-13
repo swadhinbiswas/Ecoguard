@@ -69,6 +69,18 @@ class ModelRegistryService:
         model_id: int,
         target_status: ModelStatus,
     ) -> ModelRegistry:
+        VALID_TRANSITIONS = {
+            ModelStatus.REGISTERED: {ModelStatus.STAGING, ModelStatus.FAILED},
+            ModelStatus.STAGING: {
+                ModelStatus.PRODUCTION,
+                ModelStatus.REGISTERED,
+                ModelStatus.FAILED,
+            },
+            ModelStatus.PRODUCTION: {ModelStatus.ARCHIVED, ModelStatus.FAILED},
+            ModelStatus.FAILED: {ModelStatus.REGISTERED},
+            ModelStatus.ARCHIVED: {ModelStatus.REGISTERED},
+        }
+
         result = await db.execute(
             select(ModelRegistry).where(ModelRegistry.id == model_id)
         )
@@ -76,7 +88,45 @@ class ModelRegistryService:
         if not model:
             raise ValueError(f"Model {model_id} not found")
 
+        current_status = (
+            model.status
+            if isinstance(model.status, ModelStatus)
+            else ModelStatus(model.status)
+        )
+        allowed = VALID_TRANSITIONS.get(current_status, set())
+        if target_status not in allowed:
+            raise ValueError(
+                f"Cannot transition from {current_status.value} to {target_status.value}"
+            )
+
         if target_status == ModelStatus.PRODUCTION:
+            # Regression check before deploying to production
+            try:
+                from src.mlops.quality import regression_detector
+
+                baseline_result = await db.execute(
+                    select(ModelRegistry).where(
+                        ModelRegistry.status == ModelStatus.PRODUCTION,
+                        ModelRegistry.name == model.name,
+                    )
+                )
+                baseline = baseline_result.scalar_one_or_none()
+                if baseline:
+                    result = await regression_detector.check_regression(
+                        db,
+                        model.id,
+                        baseline.id,
+                        "deploy_gate",
+                        {"accuracy": 1.0, "latency_ms": 0, "token_efficiency": 1.0},
+                    )
+                    if not result["passed"]:
+                        raise ValueError(
+                            f"Regression check failed: score delta={result['score_delta']} "
+                            f"(max degradation={regression_detector.max_degradation})"
+                        )
+            except ImportError:
+                pass
+
             await db.execute(
                 update(ModelRegistry)
                 .where(

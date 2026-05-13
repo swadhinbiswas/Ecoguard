@@ -24,7 +24,7 @@
     </div>
     <div class="stat-card">
         <div class="label">Started</div>
-        <div class="value" style="font-size:16px">{{ experiment.started_at[:19] if experiment.started_at else '—' }}</div>
+        <div class="value" style="font-size:16px">{{ experiment.started_at.isoformat()[:19] if experiment.started_at else '—' }}</div>
     </div>
 </div>
 

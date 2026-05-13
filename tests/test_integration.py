@@ -14,10 +14,8 @@ class TestHealthFlow:
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
             r = await ac.get("/")
         assert r.status_code == 200
-        data = r.json()
-        assert data["service"] == "Eco-Guard"
-        assert "version" in data
-        assert "environment" in data
+        assert "Eco-Guard" in r.text
+        assert "LLM Inference Gateway" in r.text
 
     @pytest.mark.asyncio
     async def test_health_returns_checks(self):

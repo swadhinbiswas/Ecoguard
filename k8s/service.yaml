@@ -22,7 +22,7 @@ metadata:
     app: eco-guard
 spec:
   accessModes:
-    - ReadOnlyMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 20Gi

@@ -53,6 +53,32 @@ class InferenceService:
         request: PredictionRequest,
         db: AsyncSession,
     ) -> PredictionResponse:
+        from src.core.enterprise import budget_manager
+        from src.mlops.quality import anomaly_detector
+
+        is_anomaly, anomaly_details = await anomaly_detector.check(
+            request_id, request.prompt
+        )
+        if (
+            is_anomaly
+            and anomaly_details
+            and anomaly_details.get("type") == "spam_flood"
+        ):
+            await anomaly_detector.log_anomaly(
+                db,
+                request_id,
+                anomaly_details["type"],
+                request.prompt,
+                anomaly_details["score"],
+                anomaly_details,
+                blocked=True,
+            )
+            raise Exception("Request blocked by anomaly detection")
+
+        allowed, budget_msg = await budget_manager.check_budget(db, 0, 0.0001)
+        if not allowed:
+            raise Exception(f"Budget exceeded: {budget_msg}")
+
         if settings.cache_enabled:
             cached = await inference_cache.get(
                 request.prompt, request.max_tokens, request.temperature

@@ -38,7 +38,7 @@
         <tbody>
             {% for t in triggers %}
             <tr>
-                <td><span style="color:var(--text2);font-size:12px">{{ t.triggered_at[:19] if t.triggered_at else '—' }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ t.triggered_at.isoformat()[:19] if t.triggered_at else '—' }}</span></td>
                 <td><span class="mono" style="color:var(--red)">{{ "%.4f"|format(t.drift_score) }}</span></td>
                 <td><span class="mono">{{ "%.2f"|format(t.threshold) }}</span></td>
                 <td>{% if t.dataset_id %}<span class="tag">DS-{{ t.dataset_id }}</span>{% else %}—{% endif %}</td>

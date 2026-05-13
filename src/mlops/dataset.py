@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,9 +21,7 @@ class DatasetPipeline:
         limit: int = 10000,
         created_by: str | None = None,
     ) -> Dataset:
-        cutoff = datetime.now(timezone.utc) - __import__("datetime").timedelta(
-            hours=hours
-        )
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         query = (
             select(InferenceLog)

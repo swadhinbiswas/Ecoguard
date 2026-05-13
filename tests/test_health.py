@@ -30,8 +30,7 @@ async def test_root_endpoint():
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.get("/")
     assert response.status_code == 200
-    data = response.json()
-    assert data["service"] == "Eco-Guard"
+    assert "Eco-Guard" in response.text
 
 
 @pytest.mark.asyncio

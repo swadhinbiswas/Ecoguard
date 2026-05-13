@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: eco-guard-pdb
+  labels:
+    app: eco-guard
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: eco-guard

@@ -101,17 +101,33 @@ class EmailNotifier:
         msg.attach(MIMEText(html_body, "html"))
 
         try:
+            import asyncio
+
             context = ssl.create_default_context()
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
-                server.starttls(context=context)
-                if self.username:
-                    server.login(self.username, self.password)
-                server.sendmail(self.from_email, self.to_emails, msg.as_string())
+
+            def _send_sync():
+                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
+                    server.starttls(context=context)
+                    if self.username:
+                        server.login(self.username, self.password)
+                    server.sendmail(self.from_email, self.to_emails, msg.as_string())
+
+            await asyncio.to_thread(_send_sync)
         except Exception as e:
             logger.error(f"Failed to send email notification: {e}")
 
 
 _notifier: Optional[EmailNotifier] = None
+_notifier_lock = None
+
+
+def _get_notifier_lock():
+    import asyncio
+
+    global _notifier_lock
+    if _notifier_lock is None:
+        _notifier_lock = asyncio.Lock()
+    return _notifier_lock
 
 
 def get_notifier(
@@ -123,13 +139,20 @@ def get_notifier(
     to_emails: list[str] | None = None,
 ) -> EmailNotifier:
     global _notifier
-    if _notifier is None:
-        _notifier = EmailNotifier(
-            smtp_host=smtp_host,
-            smtp_port=smtp_port,
-            username=username,
-            password=password,
-            from_email=from_email,
-            to_emails=to_emails or [],
-        )
+    if _notifier is not None:
+        return _notifier
+
+    _notifier = EmailNotifier(
+        smtp_host=smtp_host,
+        smtp_port=smtp_port,
+        username=username,
+        password=password,
+        from_email=from_email,
+        to_emails=to_emails or [],
+    )
     return _notifier
+
+
+def reset_notifier() -> None:
+    global _notifier
+    _notifier = None

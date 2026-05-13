@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
+from hashlib import scrypt
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,15 +37,24 @@ from src.services.streaming_service import StreamingInferenceService
 router = APIRouter(prefix="/api/v1")
 
 
+def _hash_password(password: str, salt: bytes | None = None) -> tuple[str, bytes]:
+    salt = salt or __import__("os").urandom(16)
+    hashed = scrypt(password.encode(), salt=salt, n=16384, r=8, p=1)
+    return hashed.hex(), salt
+
+
+def _verify_password(password: str, stored_hash: str, salt: bytes) -> bool:
+    computed, _ = _hash_password(password, salt)
+    return computed == stored_hash
+
+
 def _setup_required() -> list[str]:
     required: list[str] = []
     if settings.auth_enabled:
-        if settings.admin_username == "admin" and settings.admin_password == "admin":
-            required.append("Change the default admin credentials")
-        if len(settings.jwt_secret) < 32:
+        if not settings.admin_username or not settings.admin_password:
+            required.append("Set ADMIN_USERNAME and ADMIN_PASSWORD")
+        if not settings.jwt_secret or len(settings.jwt_secret) < 32:
             required.append("Set a JWT_SECRET with at least 32 characters")
-        if "eco-guard-dev-key" in settings.api_keys:
-            required.append("Remove the default development API key")
     if settings.environment == "production" and settings.cors_origins == ["*"]:
         required.append("Restrict CORS_ORIGINS for production")
     if settings.environment == "production" and not settings.database_url.startswith(
@@ -126,12 +136,18 @@ async def predict(
         response = await InferenceService.generate(request_id, request_data, db)
         return response
     except ModelNotLoadedError as e:
-        raise HTTPException(status_code=503, detail=e.detail)
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except ModelNotFoundError as e:
-        raise HTTPException(status_code=503, detail=e.detail)
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except InferenceError as e:
         record_inference(0, 0, success=False)
-        raise HTTPException(status_code=500, detail=e.detail)
+        raise HTTPException(
+            status_code=500, detail=str(e.detail).replace("/", "")[:200]
+        )
     except Exception as e:
         record_inference(0, 0, success=False)
         logger.error(f"Unexpected inference error: {e}")
@@ -175,7 +191,9 @@ async def predict_stream(
             },
         )
     except ModelNotLoadedError as e:
-        raise HTTPException(status_code=503, detail=e.detail)
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except Exception as e:
         logger.error(f"Streaming inference error: {e}")
         raise HTTPException(status_code=500, detail="Internal inference error")
@@ -285,23 +303,68 @@ async def clear_cache():
 # ── Auth ────────────────────────────────────────────────────────
 
 
+_login_attempts: dict[str, list[float]] = {}
+_LOGIN_MAX_ATTEMPTS = 10
+_LOGIN_WINDOW_SECONDS = 300
+
+
 @router.post("/auth/login")
-async def login(credentials: LoginRequest):
+async def login(credentials: LoginRequest, response: Response, request: Request):
+    now = datetime.now(timezone.utc).timestamp()
+
+    client_ip = request.client.host if request.client else "unknown"
+    if client_ip not in _login_attempts:
+        _login_attempts[client_ip] = []
+    _login_attempts[client_ip] = [
+        t for t in _login_attempts[client_ip] if now - t < _LOGIN_WINDOW_SECONDS
+    ]
+    if len(_login_attempts[client_ip]) >= _LOGIN_MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many login attempts. Try again later.",
+        )
+
     if (
         settings.demo_mode
         and credentials.username == settings.demo_username
         and credentials.password == settings.demo_password
     ):
         token = create_token(sub=credentials.username, role="viewer")
-        return {"access_token": token, "token_type": "bearer", "role": "viewer"}
+        return _set_auth_response(token, "viewer", response)
 
-    if (
-        credentials.username == settings.admin_username
-        and credentials.password == settings.admin_password
+    admin_hash, admin_salt = _hash_password(settings.admin_password)
+    if credentials.username == settings.admin_username and _verify_password(
+        credentials.password, admin_hash, admin_salt
     ):
+        _login_attempts.pop(client_ip, None)
         token = create_token(sub=credentials.username, role="admin")
-        return {"access_token": token, "token_type": "bearer", "role": "admin"}
+        return _set_auth_response(token, "admin", response)
+
+    _login_attempts[client_ip].append(now)
     raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
+def _set_auth_response(token: str, role: str, response: Response) -> dict:
+    response.set_cookie(
+        key="eco_guard_token",
+        value=token,
+        httponly=True,
+        secure=settings.environment == "production",
+        samesite="strict",
+        max_age=settings.jwt_expire_minutes * 60,
+    )
+    return {"access_token": token, "token_type": "bearer", "role": role}
+
+
+@router.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie(
+        key="eco_guard_token",
+        httponly=True,
+        secure=settings.environment == "production",
+        samesite="strict",
+    )
+    return {"message": "Logged out"}
 
 
 @router.get("/auth/status")

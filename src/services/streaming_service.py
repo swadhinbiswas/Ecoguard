@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.backend import get_backend
 from src.core.concurrency import inference_limiter
 from src.core.logging import logger
-from src.core.security import sanitize_prompt
 from src.models.inference import InferenceLog
 from src.models.schemas import PredictionRequest
 from src.monitoring.metrics import record_inference, set_drift_score
@@ -19,7 +18,7 @@ class StreamingInferenceService:
     @staticmethod
     def _build_model_kwargs(request: PredictionRequest) -> dict:
         kwargs: dict = {
-            "prompt": sanitize_prompt(request.prompt),
+            "prompt": request.prompt,
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,
         }
@@ -83,6 +82,7 @@ class StreamingInferenceService:
                         drift_score=drift_score,
                     )
                 )
+                await db.commit()
 
             done_data = json.dumps(
                 {

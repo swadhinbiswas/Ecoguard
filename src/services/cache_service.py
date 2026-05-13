@@ -16,7 +16,7 @@ class InferenceCache:
 
     @staticmethod
     def _make_key(prompt: str, max_tokens: int, temperature: float) -> str:
-        raw = f"{prompt}|{max_tokens}|{temperature:.2f}"
+        raw = f"{len(prompt)}:{prompt}:{max_tokens}:{temperature:.2f}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
     async def get(

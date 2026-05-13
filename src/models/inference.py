@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
 
 from src.db.database import Base
 
 
 class InferenceLog(Base):
     __tablename__ = "inference_logs"
+    __table_args__ = (Index("ix_inference_logs_timestamp", "timestamp"),)
 
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(String, unique=True, index=True, nullable=False)
