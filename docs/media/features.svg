@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 720" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4da6ff"/>
+      <stop offset="100%" stop-color="#3fb950"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.2"/></filter>
+    <linearGradient id="c1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1c2a3a"/><stop offset="100%" stop-color="#162230"/></linearGradient>
+    <linearGradient id="c2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2a1a"/><stop offset="100%" stop-color="#142214"/></linearGradient>
+    <linearGradient id="c3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a1a2a"/><stop offset="100%" stop-color="#221422"/></linearGradient>
+    <linearGradient id="c4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a201a"/><stop offset="100%" stop-color="#221a14"/></linearGradient>
+    <linearGradient id="c5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a202a"/><stop offset="100%" stop-color="#141a22"/></linearGradient>
+    <linearGradient id="c6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2a2a"/><stop offset="100%" stop-color="#142222"/></linearGradient>
+    <linearGradient id="c7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a2620"/><stop offset="100%" stop-color="#1e1a16"/></linearGradient>
+    <linearGradient id="c8" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e2228"/><stop offset="100%" stop-color="#161820"/></linearGradient>
+    <linearGradient id="c9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#201a28"/><stop offset="100%" stop-color="#181420"/></linearGradient>
+  </defs>
+  <rect width="1040" height="720" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1040" height="3" fill="url(#accent)"/>
+
+  <text x="520" y="38" text-anchor="middle" fill="#4da6ff" font-size="22" font-weight="800">Eco-Guard — What's Included</text>
+  <text x="520" y="56" text-anchor="middle" fill="#8b949e" font-size="11">Self-Hosted LLM Inference Gateway · OpenAI-Compatible API · MLOps Platform · Cost Governance · Guardrails</text>
+
+  <!-- Row 1 -->
+  <rect x="15" y="73" width="240" height="148" rx="10" fill="url(#c1)" filter="url(#shadow)"/>
+  <circle cx="42" cy="100" r="14" fill="#4da6ff" opacity="0.15"/><text x="42" y="105" text-anchor="middle" font-size="14">🔌</text>
+  <text x="62" y="105" fill="#4da6ff" font-size="13" font-weight="700">OpenAI-Compatible API</text>
+  <line x1="28" y1="115" x2="242" y2="115" stroke="#1a2a3a" stroke-width="0.5"/>
+  <text x="28" y="133" fill="#8b949e" font-size="10">• /v1/chat/completions + SSE</text>
+  <text x="28" y="150" fill="#8b949e" font-size="10">• /v1/embeddings endpoint</text>
+  <text x="28" y="167" fill="#8b949e" font-size="10">• Drop-in baseURL replacement</text>
+  <text x="28" y="184" fill="#8b949e" font-size="10">• Tool/function calling support</text>
+  <text x="28" y="201" fill="#8b949e" font-size="10">• JSON mode + response_format</text>
+
+  <rect x="267" y="73" width="240" height="148" rx="10" fill="url(#c2)" filter="url(#shadow)"/>
+  <circle cx="294" cy="100" r="14" fill="#3fb950" opacity="0.15"/><text x="294" y="105" text-anchor="middle" font-size="14">🦙</text>
+  <text x="314" y="105" fill="#3fb950" font-size="13" font-weight="700">Multi-Backend</text>
+  <line x1="280" y1="115" x2="494" y2="115" stroke="#1a3a1a" stroke-width="0.5"/>
+  <text x="280" y="133" fill="#8b949e" font-size="10">• llama.cpp — local GGUF models</text>
+  <text x="280" y="150" fill="#8b949e" font-size="10">• Ollama, vLLM, TGI support</text>
+  <text x="280" y="167" fill="#8b949e" font-size="10">• Any OpenAI-compatible server</text>
+  <text x="280" y="184" fill="#8b949e" font-size="10">• Runtime backend switching</text>
+  <text x="280" y="201" fill="#8b949e" font-size="10">• Pattern-based model routing</text>
+
+  <rect x="519" y="73" width="240" height="148" rx="10" fill="url(#c3)" filter="url(#shadow)"/>
+  <circle cx="546" cy="100" r="14" fill="#bc8cff" opacity="0.15"/><text x="546" y="105" text-anchor="middle" font-size="14">🔒</text>
+  <text x="566" y="105" fill="#bc8cff" font-size="13" font-weight="700">Security &amp; Auth</text>
+  <line x1="532" y1="115" x2="746" y2="115" stroke="#2a1a3a" stroke-width="0.5"/>
+  <text x="532" y="133" fill="#8b949e" font-size="10">• JWT auth with httpOnly cookies</text>
+  <text x="532" y="150" fill="#8b949e" font-size="10">• Hashed API key authentication</text>
+  <text x="532" y="167" fill="#8b949e" font-size="10">• Brute-force login protection</text>
+  <text x="532" y="184" fill="#8b949e" font-size="10">• CSP + HSTS + security headers</text>
+  <text x="532" y="201" fill="#8b949e" font-size="10">• Scrypt password hashing</text>
+
+  <rect x="771" y="73" width="254" height="148" rx="10" fill="url(#c4)" filter="url(#shadow)"/>
+  <circle cx="798" cy="100" r="14" fill="#f0883e" opacity="0.15"/><text x="798" y="105" text-anchor="middle" font-size="14">🛡</text>
+  <text x="818" y="105" fill="#f0883e" font-size="13" font-weight="700">Guardrails Pipeline</text>
+  <line x1="784" y1="115" x2="1012" y2="115" stroke="#3a2a1a" stroke-width="0.5"/>
+  <text x="784" y="133" fill="#8b949e" font-size="10">• Prompt injection detection</text>
+  <text x="784" y="150" fill="#8b949e" font-size="10">• PII redaction (SSN, CC, email)</text>
+  <text x="784" y="167" fill="#8b949e" font-size="10">• Content safety (toxicity, etc)</text>
+  <text x="784" y="184" fill="#8b949e" font-size="10">• Per-stage: block/flag/sanitize</text>
+  <text x="784" y="201" fill="#8b949e" font-size="10">• Pluggable architecture</text>
+
+  <!-- Row 2 -->
+  <rect x="15" y="232" width="240" height="148" rx="10" fill="url(#c7)" filter="url(#shadow)"/>
+  <circle cx="42" cy="259" r="14" fill="#d29922" opacity="0.15"/><text x="42" y="264" text-anchor="middle" font-size="14">💰</text>
+  <text x="62" y="264" fill="#d29922" font-size="13" font-weight="700">Cost Tracking</text>
+  <line x1="28" y1="274" x2="242" y2="274" stroke="#3a2a1a" stroke-width="0.5"/>
+  <text x="28" y="292" fill="#8b949e" font-size="10">• Per-model pricing config</text>
+  <text x="28" y="309" fill="#8b949e" font-size="10">• Pre-request cost estimation</text>
+  <text x="28" y="326" fill="#8b949e" font-size="10">• Usage analytics over time</text>
+  <text x="28" y="343" fill="#8b949e" font-size="10">• 7 models pre-configured</text>
+  <text x="28" y="360" fill="#8b949e" font-size="10">• Custom pricing API</text>
+
+  <rect x="267" y="232" width="240" height="148" rx="10" fill="url(#c8)" filter="url(#shadow)"/>
+  <circle cx="294" cy="259" r="14" fill="#79c0ff" opacity="0.15"/><text x="294" y="264" text-anchor="middle" font-size="14">📁</text>
+  <text x="314" y="264" fill="#79c0ff" font-size="13" font-weight="700">GitOps Config</text>
+  <line x1="280" y1="274" x2="494" y2="274" stroke="#1a2a3a" stroke-width="0.5"/>
+  <text x="280" y="292" fill="#8b949e" font-size="10">• ecoguard.yaml hot-reload</text>
+  <text x="280" y="309" fill="#8b949e" font-size="10">• Routes, keys, pricing in YAML</text>
+  <text x="280" y="326" fill="#8b949e" font-size="10">• Guardrails toggle in YAML</text>
+  <text x="280" y="343" fill="#8b949e" font-size="10">• Rate limits in YAML</text>
+  <text x="280" y="360" fill="#8b949e" font-size="10">• git push to reconfigure</text>
+
+  <rect x="519" y="232" width="240" height="148" rx="10" fill="url(#c5)" filter="url(#shadow)"/>
+  <circle cx="546" cy="259" r="14" fill="#4da6ff" opacity="0.15"/><text x="546" y="264" text-anchor="middle" font-size="14">📊</text>
+  <text x="566" y="264" fill="#4da6ff" font-size="13" font-weight="700">Observability</text>
+  <line x1="532" y1="274" x2="746" y2="274" stroke="#1a2a3a" stroke-width="0.5"/>
+  <text x="532" y="292" fill="#8b949e" font-size="10">• Prometheus metrics endpoint</text>
+  <text x="532" y="309" fill="#8b949e" font-size="10">• WebSocket real-time push</text>
+  <text x="532" y="326" fill="#8b949e" font-size="10">• OpenTelemetry tracing</text>
+  <text x="532" y="343" fill="#8b949e" font-size="10">• Structured JSON logging (prod)</text>
+  <text x="532" y="360" fill="#8b949e" font-size="10">• Grafana dashboard included</text>
+
+  <rect x="771" y="232" width="254" height="148" rx="10" fill="url(#c2)" filter="url(#shadow)"/>
+  <circle cx="798" cy="259" r="14" fill="#3fb950" opacity="0.15"/><text x="798" y="264" text-anchor="middle" font-size="14">⚙️</text>
+  <text x="818" y="264" fill="#3fb950" font-size="13" font-weight="700">Operations</text>
+  <line x1="784" y1="274" x2="1012" y2="274" stroke="#1a3a1a" stroke-width="0.5"/>
+  <text x="784" y="292" fill="#8b949e" font-size="10">• Rate limiting (sliding win + Redis)</text>
+  <text x="784" y="309" fill="#8b949e" font-size="10">• Circuit breaker + auto-recovery</text>
+  <text x="784" y="326" fill="#8b949e" font-size="10">• Exponential backoff retry</text>
+  <text x="784" y="343" fill="#8b949e" font-size="10">• Request timeout + concurrency limit</text>
+  <text x="784" y="360" fill="#8b949e" font-size="10">• Graceful shutdown with drain</text>
+
+  <!-- Row 3 -->
+  <rect x="15" y="391" width="240" height="148" rx="10" fill="url(#c4)" filter="url(#shadow)"/>
+  <circle cx="42" cy="418" r="14" fill="#f0883e" opacity="0.15"/><text x="42" y="423" text-anchor="middle" font-size="14">🤖</text>
+  <text x="62" y="423" fill="#f0883e" font-size="13" font-weight="700">MLOps Platform</text>
+  <line x1="28" y1="433" x2="242" y2="433" stroke="#3a2a1a" stroke-width="0.5"/>
+  <text x="28" y="451" fill="#8b949e" font-size="10">• Model Registry — version + promote</text>
+  <text x="28" y="468" fill="#8b949e" font-size="10">• Deploy: direct/canary/blue-green/A/B</text>
+  <text x="28" y="485" fill="#8b949e" font-size="10">• Datasets from inference logs</text>
+  <text x="28" y="502" fill="#8b949e" font-size="10">• Training job tracking</text>
+  <text x="28" y="519" fill="#8b949e" font-size="10">• Experiment metrics + comparison</text>
+
+  <rect x="267" y="391" width="240" height="148" rx="10" fill="url(#c6)" filter="url(#shadow)"/>
+  <circle cx="294" cy="418" r="14" fill="#3fb950" opacity="0.15"/><text x="294" y="423" text-anchor="middle" font-size="14">⚡</text>
+  <text x="314" y="423" fill="#3fb950" font-size="13" font-weight="700">Batch &amp; Fallback</text>
+  <line x1="280" y1="433" x2="494" y2="433" stroke="#1a3a3a" stroke-width="0.5"/>
+  <text x="280" y="451" fill="#8b949e" font-size="10">• Batch predict up to 100 prompts</text>
+  <text x="280" y="468" fill="#8b949e" font-size="10">• Parallel execution + aggregation</text>
+  <text x="280" y="485" fill="#8b949e" font-size="10">• Fallback chains (1-5 models)</text>
+  <text x="280" y="502" fill="#8b949e" font-size="10">• Auto-retry with timeout per step</text>
+  <text x="280" y="519" fill="#8b949e" font-size="10">• Drift → dataset → retrain pipeline</text>
+
+  <rect x="519" y="391" width="240" height="148" rx="10" fill="url(#c9)" filter="url(#shadow)"/>
+  <circle cx="546" cy="418" r="14" fill="#bc8cff" opacity="0.15"/><text x="546" y="423" text-anchor="middle" font-size="14">🛠</text>
+  <text x="566" y="423" fill="#bc8cff" font-size="13" font-weight="700">SDK &amp; CLI</text>
+  <line x1="532" y1="433" x2="746" y2="433" stroke="#2a1a3a" stroke-width="0.5"/>
+  <text x="532" y="451" fill="#8b949e" font-size="10">• Python SDK (sync + async)</text>
+  <text x="532" y="468" fill="#8b949e" font-size="10">• Drop-in OpenAI client replacement</text>
+  <text x="532" y="485" fill="#8b949e" font-size="10">• CLI: chat, cost, guardrails, health</text>
+  <text x="532" y="502" fill="#8b949e" font-size="10">• pip install ecoguard</text>
+  <text x="532" y="519" fill="#8b949e" font-size="10">• Streaming + async support</text>
+
+  <rect x="771" y="391" width="254" height="148" rx="10" fill="url(#c5)" filter="url(#shadow)"/>
+  <circle cx="798" cy="418" r="14" fill="#79c0ff" opacity="0.15"/><text x="798" y="423" text-anchor="middle" font-size="14">📉</text>
+  <text x="818" y="423" fill="#79c0ff" font-size="13" font-weight="700">Drift Detection</text>
+  <line x1="784" y1="433" x2="1012" y2="433" stroke="#1a2a3a" stroke-width="0.5"/>
+  <text x="784" y="451" fill="#8b949e" font-size="10">• Z-score statistical drift</text>
+  <text x="784" y="468" fill="#8b949e" font-size="10">• Auto-retraining pipeline triggers</text>
+  <text x="784" y="485" fill="#8b949e" font-size="10">• Webhook + email alerts</text>
+  <text x="784" y="502" fill="#8b949e" font-size="10">• Cooldown window to prevent spam</text>
+  <text x="784" y="519" fill="#8b949e" font-size="10">• Drift score in every response</text>
+
+  <!-- Bottom row -->
+  <rect x="15" y="551" width="328" height="80" rx="10" fill="url(#c1)" filter="url(#shadow)"/>
+  <circle cx="42" cy="581" r="14" fill="#4da6ff" opacity="0.15"/><text x="42" y="586" text-anchor="middle" font-size="14">🐳</text>
+  <text x="64" y="584" fill="#4da6ff" font-size="13" font-weight="700">Deploy Anywhere</text>
+  <text x="64" y="602" fill="#8b949e" font-size="10">Docker Compose · K8s + Helm · Render · Vercel · SQLite dev / PostgreSQL prod</text>
+  <text x="64" y="618" fill="#8b949e" font-size="10">Alembic migrations · CI ready · NetworkPolicy + PDB + HPA in Helm chart</text>
+
+  <rect x="356" y="551" width="328" height="80" rx="10" fill="url(#c2)" filter="url(#shadow)"/>
+  <circle cx="383" cy="581" r="14" fill="#3fb950" opacity="0.15"/><text x="383" y="586" text-anchor="middle" font-size="14">🖥</text>
+  <text x="405" y="584" fill="#3fb950" font-size="13" font-weight="700">Vue 3 Dashboard</text>
+  <text x="405" y="602" fill="#8b949e" font-size="10">Overview · Models · Inference · Drift · Experiments · Jobs · Datasets</text>
+  <text x="405" y="618" fill="#8b949e" font-size="10">Dark theme · Pinia state · JWT httpOnly cookies · Demo mode · Responsive</text>
+
+  <rect x="697" y="551" width="328" height="80" rx="10" fill="url(#c3)" filter="url(#shadow)"/>
+  <circle cx="724" cy="581" r="14" fill="#bc8cff" opacity="0.15"/><text x="724" y="586" text-anchor="middle" font-size="14">🧠</text>
+  <text x="746" y="584" fill="#bc8cff" font-size="13" font-weight="700">GPU Monitoring</text>
+  <text x="746" y="602" fill="#8b949e" font-size="10">nvidia-smi → Prometheus · Utilization · Memory · Temperature · Power</text>
+  <text x="746" y="618" fill="#8b949e" font-size="10">Grafana dashboard · Alerts on GPU anomalies · Multi-GPU support</text>
+
+  <!-- Footer bar -->
+  <rect x="15" y="660" width="1010" height="35" rx="8" fill="#161b22" stroke="#21262d" stroke-width="0.5"/>
+  <text x="520" y="682" text-anchor="middle" fill="#8b949e" font-size="10">Self-hosted · MIT · Python 3.12+ · FastAPI · Vue 3 · PostgreSQL/SQLite · Redis · Prometheus · OTel · PyYAML · llama.cpp</text>
+</svg>

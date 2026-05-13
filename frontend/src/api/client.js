@@ -1,21 +1,16 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || ''
-let authToken = localStorage.getItem('eco_token')
-
-export function setToken(t) { authToken = t }
-export function getToken() { return authToken }
 
 export async function request(method, path, body = null, params = {}) {
   const url = new URL(path, BASE || window.location.origin)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
-  const headers = { 'Content-Type': 'application/json' }
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' }
 
-  const opts = { method, headers }
+  const opts = { method, headers, credentials: 'include' }
   if (body && method !== 'GET') opts.body = JSON.stringify(body)
 
   const r = await fetch(url, opts)
-  const data = await r.json()
+  const data = await r.json().catch(() => ({}))
   if (!r.ok) throw { status: r.status, ...data }
   return data
 }

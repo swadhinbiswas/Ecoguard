@@ -40,7 +40,7 @@
                             {{ "%.4f"|format(log.drift_score or 0) }}
                         </span>
                     </td>
-                    <td><span style="color:var(--text2);font-size:12px">{{ log.timestamp[:19] if log.timestamp else '—' }}</span></td>
+                    <td><span style="color:var(--text2);font-size:12px">{{ log.timestamp.isoformat()[:19] if log.timestamp else '—' }}</span></td>
                 </tr>
                 {% endfor %}
                 {% if not recent_logs %}

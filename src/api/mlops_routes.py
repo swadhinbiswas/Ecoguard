@@ -1,4 +1,8 @@
+import os
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.session import get_db
@@ -16,29 +20,111 @@ from src.mlops.training import TrainingOrchestrator
 
 mlops_router = APIRouter(prefix="/api/v1/mlops", tags=["MLOps"])
 
+_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-./]+$")
+_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_\- ]{1,128}$")
+
+
+def _validate_path(value: str, field_name: str) -> str:
+    if not value or not value.strip():
+        raise ValueError(f"{field_name} is required")
+    if not _PATH_PATTERN.match(value):
+        raise ValueError(f"{field_name} contains invalid characters")
+    if len(value) > 512:
+        raise ValueError(f"{field_name} too long (max 512 chars)")
+    return value.strip()
+
+
+def _validate_name(value: str, field_name: str) -> str:
+    if not value or not value.strip():
+        raise ValueError(f"{field_name} is required")
+    if not _NAME_PATTERN.match(value):
+        raise ValueError(f"{field_name} contains invalid characters")
+    return value.strip()
+
+
+class RegisterModelRequest(BaseModel):
+    name: str
+    artifact_path: str
+    version: str | None = None
+    base_model: str | None = None
+    framework: str = "llama-cpp"
+    description: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def check_name(cls, v: str) -> str:
+        return _validate_name(v, "name")
+
+    @field_validator("artifact_path")
+    @classmethod
+    def check_path(cls, v: str) -> str:
+        return _validate_path(v, "artifact_path")
+
+
+class CreateExperimentRequest(BaseModel):
+    name: str
+    base_model: str
+    hyperparameters: dict = Field(default_factory=dict)
+    dataset_version: str | None = None
+    notes: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def check_name(cls, v: str) -> str:
+        return _validate_name(v, "name")
+
+    @field_validator("base_model")
+    @classmethod
+    def check_base_model(cls, v: str) -> str:
+        return _validate_name(v, "base_model")
+
+
+class CreateJobRequest(BaseModel):
+    name: str
+    config: dict = Field(default_factory=dict)
+    base_model_id: int | None = None
+    dataset_id: int | None = None
+    output_model_name: str | None = None
+    trigger_type: str = "manual"
+
+    @field_validator("name")
+    @classmethod
+    def check_name(cls, v: str) -> str:
+        return _validate_name(v, "name")
+
+
+class RouterRuleRequest(BaseModel):
+    pattern: str
+    model_path: str
+
+    @field_validator("pattern")
+    @classmethod
+    def check_pattern(cls, v: str) -> str:
+        return _validate_name(v, "pattern")
+
+    @field_validator("model_path")
+    @classmethod
+    def check_path(cls, v: str) -> str:
+        return _validate_path(v, "model_path")
+
 
 # ── Model Registry ────────────────────────────────────────────
 
 
 @mlops_router.post("/models/register")
 async def register_model(
-    name: str,
-    artifact_path: str,
-    version: str | None = None,
-    base_model: str | None = None,
-    framework: str = "llama-cpp",
-    description: str | None = None,
+    body: RegisterModelRequest,
     db: AsyncSession = Depends(get_db),
 ):
     try:
         model = await ModelRegistryService.register(
             db=db,
-            name=name,
-            artifact_path=artifact_path,
-            version=version,
-            base_model=base_model,
-            framework=framework,
-            description=description,
+            name=body.name,
+            artifact_path=body.artifact_path,
+            version=body.version,
+            base_model=body.base_model,
+            framework=body.framework,
+            description=body.description,
         )
         return {
             "id": model.id,
@@ -214,20 +300,16 @@ async def dataset_stats(db: AsyncSession = Depends(get_db)):
 
 @mlops_router.post("/experiments")
 async def create_experiment(
-    name: str,
-    base_model: str,
-    hyperparameters: dict,
-    dataset_version: str | None = None,
-    notes: str | None = None,
+    body: CreateExperimentRequest,
     db: AsyncSession = Depends(get_db),
 ):
     exp = await ExperimentTracker.create_experiment(
         db=db,
-        name=name,
-        base_model=base_model,
-        hyperparameters=hyperparameters,
-        dataset_version=dataset_version,
-        notes=notes,
+        name=body.name,
+        base_model=body.base_model,
+        hyperparameters=body.hyperparameters,
+        dataset_version=body.dataset_version,
+        notes=body.notes,
     )
     return {
         "id": exp.id,
@@ -327,22 +409,17 @@ async def compare_experiments(
 
 @mlops_router.post("/jobs")
 async def create_training_job(
-    name: str,
-    config: dict,
-    base_model_id: int | None = None,
-    dataset_id: int | None = None,
-    output_model_name: str | None = None,
-    trigger_type: str = "manual",
+    body: CreateJobRequest,
     db: AsyncSession = Depends(get_db),
 ):
     job = await TrainingOrchestrator.create_job(
         db=db,
-        name=name,
-        config=config,
-        base_model_id=base_model_id,
-        dataset_id=dataset_id,
-        output_model_name=output_model_name,
-        trigger_type=trigger_type,
+        name=body.name,
+        config=body.config,
+        base_model_id=body.base_model_id,
+        dataset_id=body.dataset_id,
+        output_model_name=body.output_model_name,
+        trigger_type=body.trigger_type,
     )
     return {
         "id": job.id,
@@ -505,7 +582,7 @@ async def export_dataset(
     dataset = await DatasetPipeline.get_dataset(db, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-    if not dataset.file_path or not __import__("os").path.exists(dataset.file_path):
+    if not dataset.file_path or not os.path.exists(dataset.file_path):
         raise HTTPException(status_code=404, detail="Dataset file not found on disk")
     return FileResponse(
         path=dataset.file_path,
@@ -565,10 +642,10 @@ async def get_router_rules():
 
 
 @mlops_router.post("/router/rules")
-async def add_router_rule(pattern: str, model_path: str):
+async def add_router_rule(body: RouterRuleRequest):
     from src.core.router import model_router
 
-    model_router.add_rule(pattern, model_path)
+    model_router.add_rule(body.pattern, body.model_path)
     return {"rules": model_router.rules}
 
 

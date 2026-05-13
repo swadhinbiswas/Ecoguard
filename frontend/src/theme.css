@@ -1,0 +1,13 @@
+/* Light theme CSS variables */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --surface2: #e9ecef;
+  --border: #dee2e6;
+  --text: #212529;
+  --text2: #6c757d;
+  --accent: #0d6efd;
+  --green: #198754;
+  --red: #dc3545;
+  --yellow: #ffc107;
+}

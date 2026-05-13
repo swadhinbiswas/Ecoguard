@@ -63,7 +63,7 @@
                     {% else %}—{% endif %}
                 </td>
                 <td>{{ e.total_steps }}</td>
-                <td><span style="color:var(--text2);font-size:12px">{{ e.started_at[:19] if e.started_at else '—' }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ e.started_at.isoformat()[:19] if e.started_at else '—' }}</span></td>
             </tr>
             {% endfor %}
             {% if not experiments %}

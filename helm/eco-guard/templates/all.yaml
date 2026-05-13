@@ -26,6 +26,16 @@ data:
   REQUEST_TIMEOUT_SECONDS: {{ .Values.config.requestTimeoutSeconds | quote }}
   CIRCUIT_BREAKER_ENABLED: {{ .Values.config.circuitBreakerEnabled | quote }}
   SHUTDOWN_DRAIN_TIMEOUT: {{ .Values.config.shutdownDrainTimeout | quote }}
+  DEMO_MODE: {{ .Values.config.demoMode | quote }}
+  CACHE_TTL_SECONDS: {{ .Values.config.cacheTtlSeconds | quote }}
+  CACHE_MAX_ENTRIES: {{ .Values.config.cacheMaxEntries | quote }}
+  {{- if .Values.config.corsOrigins }}
+  CORS_ORIGINS: {{ .Values.config.corsOrigins | toJson | quote }}
+  {{- end }}
+  GUARDRAILS_ENABLED: {{ .Values.config.guardrailsEnabled | quote }}
+  {{- if .Values.config.ipAllowlist }}
+  IP_ALLOWLIST: {{ .Values.config.ipAllowlist | toJson | quote }}
+  {{- end }}
   MODEL_PATH: /app/models/model.gguf
   {{- if .Values.tracing.enabled }}
   OTLP_ENDPOINT: {{ .Values.tracing.otlpEndpoint | quote }}
@@ -37,9 +47,16 @@ metadata:
   name: {{ include "eco-guard.fullname" . }}-secrets
   labels: {{- include "eco-guard.labels" . | nindent 4 }}
 type: Opaque
-stringData:
-  DATABASE_URL: postgresql+asyncpg://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
-  {{- if .Values.alerts.webhookUrl }}
+  stringData:
+    DATABASE_URL: postgresql+asyncpg://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}?sslmode=require
+    JWT_SECRET: {{ required "secrets.jwtSecret is required" .Values.secrets.jwtSecret | quote }}
+    ADMIN_USERNAME: {{ required "secrets.adminUsername is required" .Values.secrets.adminUsername | quote }}
+    ADMIN_PASSWORD: {{ required "secrets.adminPassword is required" .Values.secrets.adminPassword | quote }}
+    API_KEYS: {{ .Values.secrets.apiKeys | quote }}
+    {{- if .Values.secrets.redisUrl }}
+    REDIS_URL: {{ .Values.secrets.redisUrl | quote }}
+    {{- end }}
+    {{- if .Values.alerts.webhookUrl }}
   ALERTING_WEBHOOK_URL: {{ .Values.alerts.webhookUrl | quote }}
   {{- end }}
 ---
@@ -69,10 +86,29 @@ spec:
     spec:
       serviceAccountName: {{ include "eco-guard.fullname" . }}
       terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      {{- if .Values.podAntiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: {{- include "eco-guard.selectorLabels" . | nindent 20 }}
+                topologyKey: kubernetes.io/hostname
+      {{- end }}
       containers:
         - name: api
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities: {{- toYaml .Values.containerSecurityContext.capabilities | nindent 14 }}
           ports:
             - name: http
               containerPort: 8000
@@ -86,7 +122,40 @@ spec:
                 secretKeyRef:
                   name: {{ include "eco-guard.fullname" . }}-secrets
                   key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: JWT_SECRET
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: ADMIN_PASSWORD
+            - name: API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: API_KEYS
+            {{- if .Values.secrets.redisUrl }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: REDIS_URL
+            {{- end }}
             {{- if .Values.alerts.webhookUrl }}
+            - name: ALERTING_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "eco-guard.fullname" . }}-secrets
+                  key: ALERTING_WEBHOOK_URL
+            {{- end }}
             - name: ALERTING_WEBHOOK_URL
               valueFrom:
                 secretKeyRef:
@@ -232,4 +301,65 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+{{- end }}
+{{- if .Values.networkPolicy.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-netpol
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "eco-guard.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+  egress:
+    - to:
+        {{- if .Values.postgresql.enabled }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- if .Values.redis.enabled }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    {{- end }}
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+{{- end }}
+{{- if .Values.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "eco-guard.fullname" . }}-pdb
+  labels: {{- include "eco-guard.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels: {{- include "eco-guard.selectorLabels" . | nindent 6 }}
 {{- end }}

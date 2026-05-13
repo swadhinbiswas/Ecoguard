@@ -63,6 +63,11 @@ class TrainingOrchestrator:
         if not job:
             raise ValueError(f"Job {job_id} not found")
 
+        if job.status not in (JobStatus.RUNNING,):
+            raise ValueError(
+                f"Job {job_id} cannot be completed (status: {job.status.value})"
+            )
+
         job.status = JobStatus.COMPLETED if success else JobStatus.FAILED
         job.completed_at = datetime.now(timezone.utc)
         if error_message:
@@ -77,6 +82,11 @@ class TrainingOrchestrator:
         job = result.scalar_one_or_none()
         if not job:
             raise ValueError(f"Job {job_id} not found")
+
+        if job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED):
+            raise ValueError(
+                f"Job {job_id} is already in terminal state (status: {job.status.value})"
+            )
 
         job.status = JobStatus.CANCELLED
         job.completed_at = datetime.now(timezone.utc)

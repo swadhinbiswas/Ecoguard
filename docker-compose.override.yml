@@ -1,0 +1,18 @@
+services:
+  api:
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - AUTH_ENABLED=false
+      - RATE_LIMIT_ENABLED=false
+      - CACHE_ENABLED=false
+      - AUTO_MIGRATE=true
+      - METRICS_ENABLED=true
+      - GUARDRAILS_ENABLED=false
+      - DEMO_MODE=false
+      - CORS_ORIGINS=["*"]
+      - REDIS_URL=
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload

@@ -1,42 +1,60 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { setToken } from '../api/client'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('eco_token') || '')
-  const user = ref(JSON.parse(localStorage.getItem('eco_user') || 'null'))
+  const user = ref(null)
+  const isAuthenticated = computed(() => !!user.value)
 
-  const isAuthenticated = computed(() => !!token.value)
+  async function checkAuth() {
+    try {
+      const r = await fetch(`${API_BASE}/api/v1/auth/status`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
+      })
+      if (!r.ok) { user.value = null; return false }
+      const data = await r.json()
+      if (data.authenticated) {
+        user.value = { username: data.user, role: data.role || 'viewer' }
+        return true
+      }
+      user.value = null
+      return false
+    } catch {
+      user.value = null
+      return false
+    }
+  }
 
   async function login(username, password) {
     const r = await fetch(`${API_BASE}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ username, password }),
     })
-    if (!r.ok) throw new Error('Invalid credentials')
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data?.error?.message || data?.detail || 'Invalid credentials')
+    }
     const data = await r.json()
-    token.value = data.access_token
     user.value = { username, role: data.role || 'admin' }
-    localStorage.setItem('eco_token', token.value)
-    localStorage.setItem('eco_user', JSON.stringify(user.value))
-    setToken(token.value)
     return true
   }
 
-  function logout() {
-    token.value = ''
+  async function logout() {
+    await fetch(`${API_BASE}/api/v1/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {})
     user.value = null
-    localStorage.removeItem('eco_token')
-    localStorage.removeItem('eco_user')
-    setToken('')
   }
 
-  function init() {
-    if (token.value) setToken(token.value)
+  async function init() {
+    await checkAuth()
   }
 
-  return { token, user, isAuthenticated, login, logout, init }
+  return { user, isAuthenticated, login, logout, init, checkAuth }
 })

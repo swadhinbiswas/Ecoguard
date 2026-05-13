@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: eco-guard
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP
@@ -11,10 +11,13 @@ service:
   targetPort: 8000
 
 ingress:
-  enabled: false
+  enabled: true
   className: nginx
   host: eco-guard.local
-  tls: []
+  tls:
+    - secretName: eco-guard-tls
+      hosts:
+        - eco-guard.local
 
 resources:
   requests:
@@ -34,13 +37,14 @@ autoscaling:
 config:
   environment: production
   logLevel: INFO
-  authEnabled: false
-  apiKeys: []
+  authEnabled: true
   rateLimitEnabled: true
   rateLimitRequests: 100
   rateLimitWindowSeconds: 60
   metricsEnabled: true
-  cacheEnabled: false
+  cacheEnabled: true
+  cacheTtlSeconds: 300
+  cacheMaxEntries: 1000
   maxConcurrentInference: 4
   modelWarmupEnabled: true
   autoMigrate: true
@@ -48,22 +52,48 @@ config:
   requestTimeoutSeconds: 120
   circuitBreakerEnabled: true
   shutdownDrainTimeout: 15
+  demoMode: false
+  corsOrigins: []
+  guardrailsEnabled: false
+  ipAllowlist: []
+  modelWarmupPrompt: "Hello"
+
+secrets:
+  databaseUrl: ""
+  jwtSecret: ""
+  adminUsername: ""
+  adminPassword: ""
+  apiKeys: ""
+  redisUrl: ""
+  googleClientId: ""
+  googleClientSecret: ""
+  githubClientId: ""
+  githubClientSecret: ""
+  slackWebhookUrl: ""
+  discordWebhookUrl: ""
+  alertingWebhookUrl: ""
 
 postgresql:
   enabled: true
   auth:
     username: postgres
-    password: ecoguard
+    password: ""
     database: ecoguard
   primary:
     persistence:
       size: 10Gi
 
+redis:
+  enabled: false
+  auth:
+    enabled: false
+  architecture: standalone
+
 modelVolume:
   enabled: true
   storageClass: ""
   size: 20Gi
-  accessMode: ReadOnlyMany
+  accessMode: ReadWriteOnce
 
 monitoring:
   serviceMonitor:
@@ -83,3 +113,26 @@ alerts:
 serviceAccount:
   create: true
   name: ""
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+podAntiAffinity:
+  enabled: true
+
+networkPolicy:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

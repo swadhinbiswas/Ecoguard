@@ -84,14 +84,11 @@ class CircuitBreaker:
 
         return result
 
-    def reset(self) -> None:
-        async def _reset():
-            async with self._lock:
-                self._state = self.CLOSED
-                self._failure_count = 0
-                self._half_open_calls = 0
-
-        return _reset()
+    async def reset(self) -> None:
+        async with self._lock:
+            self._state = self.CLOSED
+            self._failure_count = 0
+            self._half_open_calls = 0
 
 
 class CircuitBreakerOpenError(Exception):

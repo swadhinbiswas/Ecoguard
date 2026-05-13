@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-05-12T11:18:30.717515+00:00",
+  "tables": {
+    "inference_logs": 0,
+    "model_registry": 0,
+    "training_jobs": 0,
+    "training_experiments": 0,
+    "datasets": 0,
+    "retraining_triggers": 0,
+    "deployments": 0,
+    "workspaces": 0,
+    "prompt_versions": 0,
+    "prompt_templates": 0,
+    "alert_rules": 0,
+    "audit_entries": 0
+  },
+  "total_records": 0
+}

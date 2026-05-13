@@ -21,7 +21,7 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="empty">No experiments yet. Create training jobs or log experiment metrics to populate this view.</div>
+      <div v-else class="empty-state">No experiments yet. Create training jobs or log experiment metrics to populate this view.</div>
     </div>
   </main>
 </template>
@@ -37,7 +37,7 @@ function metricText(exp) {
   return `${exp.best_metric}: ${Number(exp.best_metric_value).toFixed(4)}`
 }
 function statusClass(status) {
-  return { running: 'yellow', completed: 'green', failed: 'red', cancelled: 'gray' }[status] || 'blue'
+  return { running: 'badge-yellow', completed: 'badge-green', failed: 'badge-red', cancelled: 'gray' }[status] || 'badge-blue'
 }
 async function load() {
   const r = await api.get('/api/v1/mlops/experiments', { limit: 50 })

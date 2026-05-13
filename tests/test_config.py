@@ -34,10 +34,10 @@ class TestSettings:
     def test_production_validation_rejects_unsafe_defaults(self, monkeypatch):
         monkeypatch.setattr(settings, "environment", "production")
         monkeypatch.setattr(settings, "auth_enabled", True)
-        monkeypatch.setattr(settings, "admin_username", "admin")
-        monkeypatch.setattr(settings, "admin_password", "admin")
+        monkeypatch.setattr(settings, "admin_username", "")
+        monkeypatch.setattr(settings, "admin_password", "")
         monkeypatch.setattr(settings, "jwt_secret", "short")
-        monkeypatch.setattr(settings, "api_keys", ["eco-guard-dev-key"])
+        monkeypatch.setattr(settings, "api_keys", [])
         monkeypatch.setattr(settings, "cors_origins", ["*"])
         monkeypatch.setattr(
             settings, "database_url", "sqlite+aiosqlite:///data/ecoguard.db"

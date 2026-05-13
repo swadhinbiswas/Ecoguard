@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM python:3.11-slim AS builder
+FROM python:3.11.11-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
@@ -14,7 +14,7 @@ COPY pyproject.toml ./
 RUN uv venv && uv sync --no-dev
 
 # Stage 2: Runtime
-FROM python:3.11-slim
+FROM python:3.11.11-slim
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH" ENVIRONMENT=production

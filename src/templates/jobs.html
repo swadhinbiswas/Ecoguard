@@ -58,7 +58,7 @@
                 <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ j.error_message or '' }}">
                     <span style="color:var(--red);font-size:12px">{{ j.error_message or '—' }}</span>
                 </td>
-                <td><span style="color:var(--text2);font-size:12px">{{ j.created_at[:19] if j.created_at else '—' }}</span></td>
+                <td><span style="color:var(--text2);font-size:12px">{{ j.created_at.isoformat()[:19] if j.created_at else '—' }}</span></td>
                 <td>
                     {% if j.status == 'queued' %}
                     <button class="btn btn-sm btn-primary" hx-post="/dashboard/jobs/{{ j.id }}/start" hx-target="#jobList" hx-swap="outerHTML">Start</button>

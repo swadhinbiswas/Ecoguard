@@ -45,7 +45,10 @@ def _create_postgres_engine():
 
 async def _probe_postgres() -> bool:
     try:
-        engine = _create_postgres_engine()
+        pool_class = NullPool if settings.environment == "development" else QueuePool
+        engine = create_async_engine(
+            settings.database_url, **_get_engine_kwargs(pool_class)
+        )
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         await engine.dispose()
@@ -75,20 +78,22 @@ def is_sqlite() -> bool:
 async def init_db() -> None:
     global _engine, _async_session_local, _using_sqlite
 
-    postgres_ok = await _probe_postgres()
-
-    if postgres_ok:
+    if settings.environment == "production":
         _engine = _create_postgres_engine()
         _using_sqlite = False
         logger.info("Using PostgreSQL database")
     else:
-        if settings.environment == "production":
-            raise RuntimeError("PostgreSQL is required in production")
-        _engine = _create_sqlite_engine()
-        _using_sqlite = True
-        logger.info(
-            "PostgreSQL unavailable — falling back to SQLite (data/ecoguard.db)"
-        )
+        postgres_ok = await _probe_postgres()
+        if postgres_ok:
+            _engine = _create_postgres_engine()
+            _using_sqlite = False
+            logger.info("Using PostgreSQL database")
+        else:
+            _engine = _create_sqlite_engine()
+            _using_sqlite = True
+            logger.info(
+                "PostgreSQL unavailable — falling back to SQLite (data/ecoguard.db)"
+            )
 
     _async_session_local = sessionmaker(
         bind=_engine,
@@ -96,15 +101,13 @@ async def init_db() -> None:
         expire_on_commit=False,
     )
 
-    try:
-        async with _engine.begin() as conn:
-            if settings.environment == "production":
-                logger.info("Skipping automatic schema creation in production")
-            else:
+    if settings.environment != "production":
+        try:
+            async with _engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
                 logger.info("Database tables created/verified")
-    except Exception as e:
-        logger.warning(f"Database init skipped: {e}")
+        except Exception as e:
+            logger.warning(f"Database init skipped: {e}")
 
 
 async def close_db() -> None:

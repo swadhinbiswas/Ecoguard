@@ -1,7 +1,7 @@
-.PHONY: help install test lint format typecheck coverage clean run migrate check sync
+.PHONY: help install test lint format typecheck coverage clean run migrate check sync cli guardrails cost chat seed analytics finetune backup compare digest bench settings
 
 help:
-	@echo "Eco-Guard - LLM MLOps Platform"
+	@echo "Eco-Guard — LLM Inference Gateway + MLOps Platform"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make sync          Sync dependencies with uv"
@@ -14,6 +14,13 @@ help:
 	@echo "  make typecheck     Run mypy type checker"
 	@echo "  make check         Run full CI check (lint + typecheck + test)"
 	@echo "  make migrate       Run database migrations"
+	@echo "  make cli           Run the Eco-Guard CLI"
+	@echo "  make guardrails    Check a prompt against guardrails"
+	@echo "  make cost          View 24h cost usage"
+	@echo "  make chat          Chat with default model"
+	@echo "  make seed          Generate demo seed data"
+	@echo "  make analytics     View analytics summary"
+	@echo "  make finetune      Start a fine-tuning job"
 	@echo "  make docker-build  Build Docker image"
 	@echo "  make docker-up     Start services with docker-compose"
 	@echo "  make docker-down   Stop docker-compose services"
@@ -51,6 +58,48 @@ migrate:
 
 migrate-new:
 	uv run alembic revision --autogenerate -m "$(m)"
+
+cli:
+	@if [ -z "$(c)" ]; then \
+		uv run python sdk/cli.py --help; \
+	else \
+		uv run python sdk/cli.py $(c); \
+	fi
+
+chat:
+	uv run python sdk/cli.py chat "$(p)" --stream
+
+guardrails:
+	uv run python sdk/cli.py guardrails "$(p)"
+
+cost:
+	uv run python sdk/cli.py cost --hours $(or $(h),24)
+
+seed:
+	curl -X POST http://localhost:8000/api/v1/seed/generate
+
+analytics:
+	curl -s http://localhost:8000/api/v1/analytics/summary | python3 -m json.tool
+
+finetune:
+	curl -X POST http://localhost:8000/api/v1/finetune \
+		-H "Content-Type: application/json" \
+		-d '{"base_model":"$(or $(m),./models/tinyllama.gguf)","dataset_path":"$(or $(d),data/dataset.jsonl)","output_dir":"./models/finetuned","rank":8,"epochs":3,"learning_rate":0.0002}' | python3 -m json.tool
+
+backup:
+	curl -X POST http://localhost:8000/api/v1/backup | python3 -m json.tool
+
+compare:
+	uv run python sdk/cli.py compare "$(p)"
+
+digest:
+	curl -s http://localhost:8000/api/v1/digest | python3 -m json.tool
+
+bench:
+	curl -X POST http://localhost:8000/api/v1/benchmarks/run-all | python3 -m json.tool
+
+settings:
+	@echo "Open http://localhost:8000/dashboard#/settings in your browser"
 
 docker-build:
 	docker build -t eco-guard:latest .

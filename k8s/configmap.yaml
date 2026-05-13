@@ -13,6 +13,9 @@ data:
   RATE_LIMIT_WINDOW_SECONDS: "60"
   METRICS_ENABLED: "true"
   CACHE_ENABLED: "false"
+  REDIS_URL: ""
+  AUTH_ENABLED: "true"
+  CORS_ORIGINS: '["https://your-domain.com"]'
 ---
 apiVersion: v1
 kind: Secret
@@ -22,4 +25,8 @@ metadata:
     app: eco-guard
 type: Opaque
 stringData:
-  DATABASE_URL: "postgresql+asyncpg://postgres:password@eco-guard-db-service:5432/ecoguard"
+  DATABASE_URL: "postgresql+asyncpg://postgres:CHANGE_ME@eco-guard-db-service:5432/ecoguard?sslmode=require"
+  JWT_SECRET: "CHANGE_ME_MINIMUM_32_CHARACTER_LONG_SECRET_KEY"
+  ADMIN_USERNAME: "admin"
+  ADMIN_PASSWORD: "CHANGE_ME"
+  API_KEYS: "CHANGE_ME_GENERATE_VIA_API"

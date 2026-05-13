@@ -14,7 +14,7 @@
         <tbody>
           <tr v-for="t in triggers" :key="t.id">
             <td>#{{ t.id }}</td>
-            <td><span class="badge" :class="t.drift_score >= t.threshold ? 'red' : 'green'">{{ Number(t.drift_score).toFixed(3) }}</span></td>
+            <td><span class="badge" :class="t.drift_score >= t.threshold ? 'badge-red' : 'badge-green'">{{ Number(t.drift_score).toFixed(3) }}</span></td>
             <td>{{ Number(t.threshold).toFixed(2) }}</td>
             <td>{{ t.dataset_id || '—' }}</td>
             <td>{{ t.training_job_id || '—' }}</td>
@@ -23,7 +23,7 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="empty">No drift triggers yet. Drift alerts appear after enough inference samples cross the configured threshold.</div>
+      <div v-else class="empty-state">No drift triggers yet. Drift alerts appear after enough inference samples cross the configured threshold.</div>
     </div>
   </main>
 </template>

@@ -22,16 +22,18 @@ class ModelEvaluator:
         model_path: str | None = None,
         verbose: bool = False,
     ) -> dict:
-        if model_path and get_backend().info.get("path") != model_path:
+        backend = get_backend()
+        is_llama_cpp = backend.__class__.__name__ == "LlamaCppBackend"
+
+        if model_path and backend.info.get("path") != model_path:
             try:
-                get_backend().load(model_path)
+                backend.load(model_path)
             except Exception as e:
                 return {"error": str(e), "status": "model_load_failed"}
 
-        if not get_backend().is_loaded():
+        if not backend.is_loaded():
             return {"error": "No model loaded", "status": "no_model"}
 
-        model = get_backend()
         results = []
         total_latency = 0.0
         total_tokens = 0
@@ -41,12 +43,20 @@ class ModelEvaluator:
             t_start = time.perf_counter()
 
             try:
-                output = await asyncio.to_thread(
-                    model,
-                    prompt=tc["prompt"],
-                    max_tokens=tc.get("max_tokens", 50),
-                    temperature=0.0,
-                )
+                if is_llama_cpp:
+                    output = await asyncio.to_thread(
+                        backend.generate,
+                        prompt=tc["prompt"],
+                        max_tokens=tc.get("max_tokens", 50),
+                        temperature=0.0,
+                    )
+                else:
+                    output = backend.generate(
+                        prompt=tc["prompt"],
+                        max_tokens=tc.get("max_tokens", 50),
+                        temperature=0.0,
+                    )
+
                 t_latency = (time.perf_counter() - t_start) * 1000
                 text = output["choices"][0]["text"]
                 tokens = output["usage"]["completion_tokens"]
@@ -78,7 +88,7 @@ class ModelEvaluator:
 
         return {
             "status": "completed",
-            "model": get_backend().info.get("path"),
+            "model": backend.info.get("path"),
             "test_cases": len(self.test_cases),
             "passed": passed,
             "failed": failed,

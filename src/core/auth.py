@@ -1,3 +1,4 @@
+import hashlib
 import secrets
 import time
 from typing import Callable
@@ -62,8 +63,10 @@ def verify_request(request: Request) -> dict | None:
         return decode_token(token)
 
     api_key = request.headers.get("X-API-Key")
-    if api_key and api_key in set(settings.api_keys):
-        return {"sub": "api-key", "role": "admin"}
+    if api_key:
+        store = get_api_key_store()
+        if store.validate(api_key):
+            return {"sub": "api-key", "role": "admin"}
 
     return None
 
@@ -101,22 +104,26 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+def _hash_key(key: str) -> str:
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
 class APIKeyStore:
     def __init__(self, keys: set[str] | None = None):
-        self._keys: set[str] = keys or set()
+        self._keys: set[str] = {_hash_key(k) for k in (keys or set())}
 
     def validate(self, key: str) -> bool:
-        return key in self._keys
+        return _hash_key(key) in self._keys
 
     def add_key(self, key: str) -> None:
-        self._keys.add(key)
+        self._keys.add(_hash_key(key))
 
     def revoke_key(self, key: str) -> None:
-        self._keys.discard(key)
+        self._keys.discard(_hash_key(key))
 
     def generate_key(self) -> str:
         key = f"eg-{secrets.token_urlsafe(32)}"
-        self._keys.add(key)
+        self._keys.add(_hash_key(key))
         return key
 
     @property

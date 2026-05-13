@@ -22,7 +22,7 @@
           </tr>
         </tbody>
       </table>
-      <div v-else class="empty">No jobs yet. Drift-triggered and manual jobs will appear here.</div>
+      <div v-else class="empty-state">No jobs yet. Drift-triggered and manual jobs will appear here.</div>
     </div>
   </main>
 </template>
@@ -34,7 +34,7 @@ import api from '../api/client'
 const jobs = ref([])
 function formatDate(v) { return v ? new Date(v).toLocaleString() : '—' }
 function statusClass(status) {
-  return { queued: 'blue', running: 'yellow', completed: 'green', failed: 'red', cancelled: 'gray' }[status] || 'blue'
+  return { queued: 'badge-blue', running: 'badge-yellow', completed: 'badge-green', failed: 'badge-red', cancelled: 'gray' }[status] || 'badge-blue'
 }
 async function load() {
   const r = await api.get('/api/v1/mlops/jobs', { limit: 50 })

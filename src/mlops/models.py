@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -59,6 +60,10 @@ class JobStatus(str, enum.Enum):
 
 class TrainingJob(Base):
     __tablename__ = "training_jobs"
+    __table_args__ = (
+        Index("ix_training_jobs_status", "status"),
+        Index("ix_training_jobs_trigger_type", "trigger_type"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
@@ -105,6 +110,10 @@ class DeploymentStrategy(str, enum.Enum):
 
 class Deployment(Base):
     __tablename__ = "deployments"
+    __table_args__ = (
+        Index("ix_deployments_status", "status"),
+        Index("ix_deployments_model_id", "model_id"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     model_id = Column(Integer, ForeignKey("model_registry.id"), nullable=False)
@@ -170,6 +179,10 @@ class ExperimentMetric(Base):
 
 class RetrainingTrigger(Base):
     __tablename__ = "retraining_triggers"
+    __table_args__ = (
+        Index("ix_retraining_triggers_acknowledged", "acknowledged"),
+        Index("ix_retraining_triggers_triggered_at", "triggered_at"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     drift_score = Column(Float, nullable=False)

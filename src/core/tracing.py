@@ -5,6 +5,15 @@ from src.core.logging import logger
 
 _tracer: Any = None
 
+StatusCode = None
+
+try:
+    from opentelemetry.trace import StatusCode as _StatusCode
+
+    StatusCode = _StatusCode
+except ImportError:
+    pass
+
 
 def setup_tracing(app) -> Optional[Any]:
     global _tracer
@@ -76,6 +85,29 @@ def trace_inference(
     tracer = get_tracer()
     if tracer is None:
         return
+
+    with tracer.start_as_current_span("eco-guard.inference") as span:
+        span.set_attribute("request_id", request_id)
+        span.set_attribute("prompt_len", prompt_len)
+        span.set_attribute("latency_ms", latency_ms)
+        span.set_attribute("token_count", token_count)
+        span.set_attribute("drift_score", drift_score)
+        span.set_attribute("success", success)
+        if not success and StatusCode is not None:  # noqa: F823
+            span.set_status(StatusCode.ERROR)
+
+    try:
+        from src.core.final_pieces import otel
+
+        otel.init()
+        otel.trace_inference(
+            request_id=request_id,
+            completion_tokens=token_count,
+            latency_ms=latency_ms,
+            success=success,
+        )
+    except Exception:
+        pass
 
     try:
         from opentelemetry.trace import Status, StatusCode

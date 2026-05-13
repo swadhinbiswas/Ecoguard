@@ -9,7 +9,7 @@
         <span>Use <code>{{ demoUsername }}</code> / <code>{{ demoPassword }}</code>. Destructive actions are disabled.</span>
         <button type="button" class="ghost-btn" @click="fillDemo">Use demo login</button>
       </div>
-      <div v-if="error" class="err">{{ error }}</div>
+      <div v-if="error" class="error-box">{{ error }}</div>
       <form @submit.prevent="handleLogin">
         <div class="field"><label>Username</label><input v-model="username" required autofocus /></div>
         <div class="field"><label>Password</label><input v-model="password" type="password" required /></div>
@@ -31,13 +31,13 @@ const username = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
-const demoUsername = 'demo'
-const demoPassword = 'demo'
+const demoUsername = ref('')
+const demoPassword = ref('')
 const system = ref({ demo_mode: false })
 
 function fillDemo() {
-  username.value = demoUsername
-  password.value = demoPassword
+  if (demoUsername.value) username.value = demoUsername.value
+  if (demoPassword.value) password.value = demoPassword.value
 }
 
 async function handleLogin() {
@@ -46,8 +46,8 @@ async function handleLogin() {
   try {
     await auth.login(username.value, password.value)
     router.push('/dashboard')
-  } catch {
-    error.value = 'Invalid credentials'
+  } catch (e) {
+    error.value = e.message || 'Invalid credentials'
   } finally {
     loading.value = false
   }
@@ -56,7 +56,6 @@ async function handleLogin() {
 onMounted(async () => {
   try {
     system.value = await api.get('/api/v1/system/status')
-    if (system.value.demo_mode) fillDemo()
   } catch {}
 })
 </script>

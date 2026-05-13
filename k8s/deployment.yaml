@@ -24,10 +24,30 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: eco-guard
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: api
           image: eco-guard:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8000
               name: http
@@ -41,6 +61,26 @@ spec:
                 secretKeyRef:
                   name: eco-guard-secrets
                   key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: eco-guard-secrets
+                  key: JWT_SECRET
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: eco-guard-secrets
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eco-guard-secrets
+                  key: ADMIN_PASSWORD
+            - name: API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: eco-guard-secrets
+                  key: API_KEYS
           resources:
             requests:
               cpu: "500m"
