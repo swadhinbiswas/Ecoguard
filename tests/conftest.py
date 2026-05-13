@@ -7,6 +7,9 @@ os.environ["LOG_LEVEL"] = "ERROR"
 os.environ["METRICS_ENABLED"] = "true"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
 os.environ["AUTH_ENABLED"] = "false"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = "admin"
+os.environ["JWT_SECRET"] = "test-jwt-secret-for-testing-purposes-only"
 
 
 @pytest.fixture(autouse=True)
@@ -16,12 +19,18 @@ def set_test_env():
     os.environ["METRICS_ENABLED"] = "true"
     os.environ["RATE_LIMIT_ENABLED"] = "false"
     os.environ["AUTH_ENABLED"] = "false"
+    os.environ["ADMIN_USERNAME"] = "admin"
+    os.environ["ADMIN_PASSWORD"] = "admin"
+    os.environ["JWT_SECRET"] = "test-jwt-secret-for-testing-purposes-only"
     yield
     os.environ.pop("ENVIRONMENT", None)
     os.environ.pop("LOG_LEVEL", None)
     os.environ.pop("METRICS_ENABLED", None)
     os.environ.pop("RATE_LIMIT_ENABLED", None)
     os.environ.pop("AUTH_ENABLED", None)
+    os.environ.pop("ADMIN_USERNAME", None)
+    os.environ.pop("ADMIN_PASSWORD", None)
+    os.environ.pop("JWT_SECRET", None)
 
 
 @pytest.fixture(scope="session")
