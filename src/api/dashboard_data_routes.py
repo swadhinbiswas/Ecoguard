@@ -1,6 +1,5 @@
 """Routes for prompt templates, analytics, alert rules, deployment timeline, and system config."""
 
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import select

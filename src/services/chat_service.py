@@ -387,5 +387,3 @@ class BatchInferenceService:
             total_latency_ms=(time.perf_counter() - total_start) * 1000,
             total_tokens=total_tokens,
         )
-
-

@@ -209,7 +209,9 @@ class ComplianceExporter:
             "inference_logs": [
                 {
                     "request_id": log_entry.request_id,
-                    "timestamp": log_entry.timestamp.isoformat() if log_entry.timestamp else None,
+                    "timestamp": log_entry.timestamp.isoformat()
+                    if log_entry.timestamp
+                    else None,
                     "input": log_entry.input_text,
                     "output": log_entry.prediction_output,
                 }

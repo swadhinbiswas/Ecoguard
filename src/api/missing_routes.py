@@ -97,7 +97,9 @@ async def paginated_logs(
                 "request_id": log_entry.request_id,
                 "latency_ms": log_entry.latency_ms,
                 "token_count": log_entry.token_count,
-                "timestamp": log_entry.timestamp.isoformat() if log_entry.timestamp else None,
+                "timestamp": log_entry.timestamp.isoformat()
+                if log_entry.timestamp
+                else None,
             }
             for log_entry in logs
         ],

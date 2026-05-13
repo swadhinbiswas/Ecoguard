@@ -253,7 +253,9 @@ class PromptAnomalyDetector:
                 "score": log_entry.score,
                 "blocked": log_entry.blocked,
                 "details": log_entry.details,
-                "detected_at": log_entry.detected_at.isoformat() if log_entry.detected_at else None,
+                "detected_at": log_entry.detected_at.isoformat()
+                if log_entry.detected_at
+                else None,
             }
             for log_entry in logs
         ]

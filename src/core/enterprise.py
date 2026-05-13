@@ -49,9 +49,7 @@ class BudgetManager:
     ) -> tuple[bool, str]:
         """Returns (allowed, message). Blocks if over cap."""
         result = await db.execute(
-            select(Budget).where(
-                Budget.workspace_id == workspace_id, Budget.is_active
-            )
+            select(Budget).where(Budget.workspace_id == workspace_id, Budget.is_active)
         )
         budget = result.scalar_one_or_none()
         if not budget:
@@ -395,9 +393,7 @@ class AutoScaler:
 
     @staticmethod
     async def evaluate_rules(db: AsyncSession) -> list[dict]:
-        result = await db.execute(
-            select(ScalingRule).where(ScalingRule.enabled)
-        )
+        result = await db.execute(select(ScalingRule).where(ScalingRule.enabled))
         rules = result.scalars().all()
 
         metrics = AutoScaler.get_current_metrics()

@@ -136,12 +136,18 @@ async def predict(
         response = await InferenceService.generate(request_id, request_data, db)
         return response
     except ModelNotLoadedError as e:
-        raise HTTPException(status_code=503, detail=str(e.detail).replace('/','')[:200])
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except ModelNotFoundError as e:
-        raise HTTPException(status_code=503, detail=str(e.detail).replace('/','')[:200])
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except InferenceError as e:
         record_inference(0, 0, success=False)
-        raise HTTPException(status_code=500, detail=str(e.detail).replace('/','')[:200])
+        raise HTTPException(
+            status_code=500, detail=str(e.detail).replace("/", "")[:200]
+        )
     except Exception as e:
         record_inference(0, 0, success=False)
         logger.error(f"Unexpected inference error: {e}")
@@ -185,7 +191,9 @@ async def predict_stream(
             },
         )
     except ModelNotLoadedError as e:
-        raise HTTPException(status_code=503, detail=str(e.detail).replace('/','')[:200])
+        raise HTTPException(
+            status_code=503, detail=str(e.detail).replace("/", "")[:200]
+        )
     except Exception as e:
         logger.error(f"Streaming inference error: {e}")
         raise HTTPException(status_code=500, detail="Internal inference error")
