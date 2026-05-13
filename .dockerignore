@@ -37,8 +37,6 @@ load-tests/
 
 .github/
 .pre-commit-config.yaml
-pyproject.toml
-uv.lock
 
 tests/
 .coverage
